@@ -1,10 +1,9 @@
 package watcher
 
 import (
+	"context"
 	"errors"
 	"k8s.io/apimachinery/pkg/watch"
-	"context"
-
 )
 
 // ConditionFunc returns true if the condition has been reached, false if it has not been reached yet,
@@ -56,4 +55,3 @@ func UntilWithoutRetry(ctx context.Context, watcher watch.Interface,
 	}
 	return lastEvent, nil
 }
-

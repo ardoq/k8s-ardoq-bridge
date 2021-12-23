@@ -1,9 +1,14 @@
-FROM golang:1.13.1-alpine3.10 as builder
+FROM golang:1.17-alpine as builder
 RUN mkdir /src
-ADD . /src/
 WORKDIR /src
-RUN go build -ldflags "-s -w -X main.version=$(cat VERSION)" -o kubeops
+ADD . .
+RUN go get github.com/pilu/fresh
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-extldflags '-static' -s -w -X main.version=$(cat VERSION)" -o main .
+CMD ["fresh"]
+
 FROM alpine
-COPY --from=builder /src/kubeops /app/kubeops
+COPY --from=builder /src/kubeops /app/
 WORKDIR /app
-ENTRYPOINT ["/app/kubeops"]
+EXPOSE 8080
+#ENTRYPOINT ["/app/kubeops"]
+CMD ["/main"]

@@ -28,6 +28,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"KubeOps/app/lib/runtime"
@@ -41,15 +42,24 @@ import (
 )
 
 var (
-	masterURL  string
-	kubeconfig string
-	addr       = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
+	masterURL          string
+	kubeconfig         string
+	addr               = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
+	leaseLockName      string
+	leaseLockNamespace string
 )
 
 func main() {
 
 	klog.InitFlags(nil)
 	flag.Parse()
+
+	if leaseLockName == "" {
+		klog.Fatal("unable to get lease lock resource name (missing lease-lock-name flag).")
+	}
+	if leaseLockNamespace == "" {
+		klog.Fatal("unable to get lease lock resource namespace (missing lease-lock-namespace flag).")
+	}
 
 	start := time.Now()
 	klog.Infof("Starting @ %s", start.String())
@@ -77,7 +87,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	defer func() {
 		signal.Stop(c)
 		cancel()
@@ -98,10 +108,10 @@ func main() {
 	err = runtime.EventBuffer(ctx, kubeClient,
 		&subscription.Registry{
 			Subscriptions: []subscription.ISubscription{
-				subscriptions.ExamplePodOperator{},
+				subscriptions.DeploymentOperator{},
 			},
 		}, []watcher.IObject{
-			kubeClient.CoreV1().Pods(""),
+			kubeClient.AppsV1().Deployments(""),
 		})
 	if err != nil {
 		klog.Error(err)
@@ -111,5 +121,7 @@ func main() {
 func init() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")
+	flag.StringVar(&leaseLockName, "lease-lock-name", "", "the lease lock resource name")
+	flag.StringVar(&leaseLockNamespace, "lease-lock-namespace", "", "the lease lock resource namespace")
 
 }

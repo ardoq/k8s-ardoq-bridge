@@ -2,3 +2,9 @@
 .idea
 vendor
 kubeops
+Dockerfile
+.git
+
+
+# Ignore DevSpace cache and log folder
+.devspace/
