@@ -47,7 +47,9 @@ dev:
     # This is often useful to display help info for new users or perform initial tasks (e.g. installing dependencies)
     # DevSpace has generated an example ./devspace_start.sh file in your local project - Feel free to customize it!
     command:
-    - fresh
+      - bash
+      - "-c"
+      - ./devspace_start.sh
 
   # Since our Helm charts and manifests deployments are often optimized for production,
   # DevSpace let's you swap out Pods dynamically to get a better dev environment

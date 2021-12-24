@@ -24,6 +24,10 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/google/uuid"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/leaderelection"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"log"
 	"net/http"
 	"os"
@@ -47,6 +51,8 @@ var (
 	addr               = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
 	leaseLockName      string
 	leaseLockNamespace string
+	id                 string
+	port               string
 )
 
 func main() {
@@ -105,23 +111,67 @@ func main() {
 		This is a default template file.
 		Add subscriptions and watchers to make it your own.
 	*/
-	err = runtime.EventBuffer(ctx, kubeClient,
-		&subscription.Registry{
-			Subscriptions: []subscription.ISubscription{
-				subscriptions.DeploymentOperator{},
-			},
-		}, []watcher.IObject{
-			kubeClient.AppsV1().Deployments(""),
-		})
-	if err != nil {
-		klog.Error(err)
+	lock := &resourcelock.LeaseLock{
+		LeaseMeta: metav1.ObjectMeta{
+			Name:      leaseLockName,
+			Namespace: leaseLockNamespace,
+		},
+		Client: kubeClient.CoordinationV1(),
+		LockConfig: resourcelock.ResourceLockConfig{
+			Identity: id,
+		},
 	}
+	leaderelection.RunOrDie(ctx, leaderelection.LeaderElectionConfig{
+		Lock: lock,
+		// IMPORTANT: you MUST ensure that any code you have that
+		// is protected by the lease must terminate **before**
+		// you call cancel. Otherwise, you could have a background
+		// loop still running and another process could
+		// get elected before your background loop finished, violating
+		// the stated goal of the lease.
+		ReleaseOnCancel: true,
+		LeaseDuration:   60 * time.Second,
+		RenewDeadline:   15 * time.Second,
+		RetryPeriod:     5 * time.Second,
+		Callbacks: leaderelection.LeaderCallbacks{
+			OnStartedLeading: func(ctx context.Context) {
+				// we're notified when we start - this is where you would
+				// usually put your code
+				err = runtime.EventBuffer(ctx, kubeClient,
+					&subscription.Registry{
+						Subscriptions: []subscription.ISubscription{
+							subscriptions.DeploymentOperator{},
+						},
+					}, []watcher.IObject{
+						kubeClient.AppsV1().Deployments(""),
+					})
+				if err != nil {
+					klog.Error(err)
+				}
+			},
+			OnStoppedLeading: func() {
+				// we can do cleanup here
+				klog.Infof("leader lost: %s", id)
+				os.Exit(0)
+			},
+			OnNewLeader: func(identity string) {
+				// we're notified when new leader elected
+				if identity == id {
+					// I just got the lock
+					return
+				}
+				hostname, _ := os.Hostname()
+				klog.Infof("new leader elected: %s|%s", hostname, identity)
+			},
+		},
+	})
+
 }
 
 func init() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")
-	flag.StringVar(&leaseLockName, "lease-lock-name", "", "the lease lock resource name")
-	flag.StringVar(&leaseLockNamespace, "lease-lock-namespace", "", "the lease lock resource namespace")
-
+	flag.StringVar(&leaseLockName, "lease-lock-name", "k8s-ardoq-bridge", "the lease lock resource name")
+	flag.StringVar(&leaseLockNamespace, "lease-lock-namespace", "default", "the lease lock resource namespace")
+	flag.StringVar(&id, "id", uuid.New().String(), "the holder identity name") //todo: change to hostname
 }
