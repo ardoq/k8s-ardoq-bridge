@@ -19,10 +19,10 @@ down:
 	kind delete cluster --name=kind
 
 publish:
-	kind load docker-image kubeops:$(VERSION) --name=kind
+	kind load docker-image ardoqk8sbridge:$(VERSION) --name=kind
 
 docker:
-	docker build -t kubeops:$(VERSION) .
+	docker build -t ardoqk8sbridge:$(VERSION) .
 
 install:
 	cd helm && helm install . --generate-name && cd ../

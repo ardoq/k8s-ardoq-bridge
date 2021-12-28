@@ -39,6 +39,7 @@ dev:
   - imageSelector: ${IMAGE} # Select the Pod that runs our `${IMAGE}`
     excludePaths:
     - .git/
+    - tmp/
 
   # `dev.terminal` tells DevSpace to open a terminal as a last step during `devspace dev`
   terminal:

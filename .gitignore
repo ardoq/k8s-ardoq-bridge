@@ -1,10 +1,10 @@
 .DS_Store
 .idea
 vendor
-kubeops
+ardoqk8sbridge
 Dockerfile
 .git
-
+tmp/
 
 # Ignore DevSpace cache and log folder
 .devspace/

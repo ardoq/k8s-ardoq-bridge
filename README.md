@@ -1,6 +1,6 @@
 [![ohmyyaml](./image/operator.png)](https://youtu.be/08O9eLJGQRM "Operators")
 
-### This project is now located within the CloudNative Skunkworks [here](https://github.com/cloud-native-skunkworks/KubeOps) this repository will maintain a mirror.
+### This project is now located within the CloudNative Skunkworks [here](https://github.com/cloud-native-skunkworks/ArdoqK8sBridge) this repository will maintain a mirror.
 
 
 A simple programmatic Kubernetes Operator template.
@@ -133,4 +133,4 @@ _Please see [LICENCE.md](LICENCE.md) for licence enquiries_
 
 ## What about Custom Resource Definitions?
 
-Currently the solution would be to use kubebuilder to generate CRD's and then import them either as a library or subproject into KubeOps template.
+Currently the solution would be to use kubebuilder to generate CRD's and then import them either as a library or subproject into ArdoqK8sBridge template.

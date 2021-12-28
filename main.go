@@ -35,10 +35,10 @@ import (
 	"syscall"
 	"time"
 
-	"KubeOps/app/lib/runtime"
-	"KubeOps/app/lib/subscription"
-	"KubeOps/app/lib/watcher"
-	"KubeOps/app/subscriptions"
+	"ArdoqK8sBridge/app/lib/runtime"
+	"ArdoqK8sBridge/app/lib/subscription"
+	"ArdoqK8sBridge/app/lib/watcher"
+	"ArdoqK8sBridge/app/subscriptions"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -52,7 +52,6 @@ var (
 	leaseLockName      string
 	leaseLockNamespace string
 	id                 string
-	port               string
 )
 
 func main() {
@@ -140,7 +139,7 @@ func main() {
 				err = runtime.EventBuffer(ctx, kubeClient,
 					&subscription.Registry{
 						Subscriptions: []subscription.ISubscription{
-							subscriptions.DeploymentOperator{},
+							subscriptions.DeploymentSubscriber{},
 						},
 					}, []watcher.IObject{
 						kubeClient.AppsV1().Deployments(""),
@@ -161,7 +160,7 @@ func main() {
 					return
 				}
 				hostname, _ := os.Hostname()
-				klog.Infof("new leader elected: %s|%s", hostname, identity)
+				klog.Infof("new leader elected: %s | %s", hostname, identity)
 			},
 		},
 	})

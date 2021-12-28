@@ -1,4 +1,4 @@
-module KubeOps/app
+module ArdoqK8sBridge/app
 
 go 1.15
 
