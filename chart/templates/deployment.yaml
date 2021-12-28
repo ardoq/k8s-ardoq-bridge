@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "k8s-ardoq-bridge.fullname" . }}
+  name: {{ include "ardoq-k8s-bridge.fullname" . }}
   labels:
-    {{- include "k8s-ardoq-bridge.labels" . | nindent 4 }}
+    {{- include "ardoq-k8s-bridge.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "k8s-ardoq-bridge.selectorLabels" . | nindent 6 }}
+      {{- include "ardoq-k8s-bridge.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "k8s-ardoq-bridge.selectorLabels" . | nindent 8 }}
+        {{- include "ardoq-k8s-bridge.selectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      serviceAccountName: {{ include "k8s-ardoq-bridge.serviceAccountName" . }}
+      serviceAccountName: {{ include "ardoq-k8s-bridge.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -27,18 +27,23 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-#          ports:
-#            - name: http
-#              containerPort: 80
-#              protocol: TCP
-#          livenessProbe:
-#            httpGet:
-#              path: /
-#              port: http
-#          readinessProbe:
-#            httpGet:
-#              path: /
-#              port: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "ardoq-k8s-bridge.fullname" . }}
+            - secretRef:
+                name: {{ include "ardoq-k8s-bridge.fullname" . }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

@@ -22,8 +22,10 @@ func NewBridgeController(kubeClient *kubernetes.Clientset) *BridgeController {
 	}
 }
 func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployment) {
-	klog.Info(event.Type)
-	klog.Infof("Deployment %s has %d Available replicas", res.Name, res.Status.AvailableReplicas)
+	klog.Infof("%s | Resource: %s | Deployment | %s | %d | %s ", event.Type, res.Namespace, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+}
+func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.StatefulSet) {
+	klog.Infof("%s | Resource: %s | StatefulSet | %s | %d | %s ", event.Type, res.Namespace, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
 }
 func (b *BridgeController) ControlLoop(cancelContext context.Context) {
 
