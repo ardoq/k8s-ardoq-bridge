@@ -5,7 +5,7 @@ metadata:
   labels:
   {{- include "ardoq-k8s-bridge.labels" . | nindent 4 }}
 data:
-  PORT: {{ .Values.service.port }}
+  PORT: {{ .Values.service.port | quote }}
   {{- if .Values.ardoq.baseUri }}
   ARDOQ_BASEURI: {{ .Values.ardoq.baseUri }}
   {{- end }}
@@ -15,3 +15,7 @@ data:
   {{- if .Values.ardoq.workspaceId }}
   ARDOQ_WORKSPACE_ID: {{ .Values.ardoq.workspaceId }}
   {{- end }}
+  {{- if .Values.ardoq.cluster }}
+  ARDOQ_CLUSTER: {{ .Values.ardoq.cluster }}
+  {{- end }}
+
