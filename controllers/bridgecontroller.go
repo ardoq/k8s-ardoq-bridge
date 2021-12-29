@@ -12,20 +12,45 @@ type BridgeController struct {
 	KubeClient *kubernetes.Clientset
 }
 
-func (b *BridgeController) OnResourceEvent(event watch.Event) {
-
-}
 func NewBridgeController(kubeClient *kubernetes.Clientset) *BridgeController {
-
 	return &BridgeController{
 		KubeClient: kubeClient,
 	}
 }
 func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployment) {
-	klog.Infof("%s | Resource: %s | Deployment | %s | %d | %s ", event.Type, res.Namespace, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+	resourceType := "Deployment"
+	klog.Infof("%s | Resource: %s | %s | %s | %d | %s ", event.Type, res.Namespace, resourceType, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+
+	if res.Name == "" {
+		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+		return
+	}
+	switch event.Type {
+	case watch.Added, watch.Modified:
+		firstOrCreateDeploymentStatefulset(res.Name, resourceType, res.Namespace)
+		break
+	case watch.Deleted:
+		//todo: add delete processing
+
+		break
+	}
 }
 func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.StatefulSet) {
-	klog.Infof("%s | Resource: %s | StatefulSet | %s | %d | %s ", event.Type, res.Namespace, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+	resourceType := "StatefulSet"
+	klog.Infof("%s | Resource: %s | %s | %s | %d | %s ", event.Type, res.Namespace, resourceType, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+
+	if res.Name == "" {
+		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+		return
+	}
+	switch event.Type {
+	case watch.Added, watch.Modified:
+		firstOrCreateDeploymentStatefulset(res.Name, resourceType, res.Namespace)
+		break
+	case watch.Deleted:
+		//todo: add delete processing
+		break
+	}
 }
 func (b *BridgeController) ControlLoop(cancelContext context.Context) {
 
