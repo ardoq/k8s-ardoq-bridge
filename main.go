@@ -46,8 +46,9 @@ import (
 )
 
 var (
-	masterURL          string
-	kubeconfig         string
+	masterURL  string
+	kubeconfig string
+	//addr       = flag.String("listen-address", ":0", "The address to listen on for HTTP requests.")
 	addr               = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
 	leaseLockName      string
 	leaseLockNamespace string
@@ -110,6 +111,19 @@ func main() {
 		This is a default template file.
 		Add subscriptions and watchers to make it your own.
 	*/
+	//err = runtime.EventBuffer(ctx, kubeClient,
+	//	&subscription.Registry{
+	//		Subscriptions: []subscription.ISubscription{
+	//			subscriptions.DeploymentSubscriber{},
+	//			subscriptions.StatefulsetSubscriber{},
+	//		},
+	//	}, []watcher.IObject{
+	//		kubeClient.AppsV1().Deployments(""),
+	//		kubeClient.AppsV1().StatefulSets(""),
+	//	})
+	//if err != nil {
+	//	klog.Error(err)
+	//}
 	lock := &resourcelock.LeaseLock{
 		LeaseMeta: metav1.ObjectMeta{
 			Name:      leaseLockName,
