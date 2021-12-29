@@ -3,11 +3,11 @@ version: v1beta11
 # `vars` specifies variables which may be used as ${VAR_NAME} in devspace.yaml
 vars:
 - name: IMAGE
-  value: ianmuge/k8s-ardoq-bridge
+  value: ianmuge/ardoq-k8s-bridge
 
 # `deployments` tells DevSpace how to deploy this project
 deployments:
-- name: k8s-ardoq-bridge
+- name: ardoq-k8s-bridge
   # This deployment uses `helm` but you can also define `kubectl` deployments or kustomizations
   helm:
     # We are deploying this project with the Helm chart you provided
@@ -17,7 +17,7 @@ deployments:
     # You may also use `valuesFiles` to load values from files, e.g. valuesFiles: ["values.yaml"]
     values:
       ardoq:
-        baseUri: "piedpiper.devops.ardoq.dev"
+        baseUri: "https://piedpiper.devops.ardoq.dev/api/"
         org: "piedpiper"
         workspaceId: ""
         apiKey: ""
@@ -36,8 +36,8 @@ dev:
 
   # `dev.open` tells DevSpace to open certain URLs as soon as they return HTTP status 200
   # Since we configured port-forwarding, we can use a localhost address here to access our application
-  open:
-  - url: http://localhost:8080/metrics
+#  open:
+#  - url: http://localhost:8080/metrics
 
   # `dev.sync` configures a file sync between our Pods in k8s and your local project files
   sync:
