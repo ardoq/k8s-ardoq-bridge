@@ -151,10 +151,12 @@ func main() {
 						Subscriptions: []subscription.ISubscription{
 							subscriptions.DeploymentSubscriber{},
 							subscriptions.StatefulsetSubscriber{},
+							subscriptions.NodeSubscriber{},
 						},
 					}, []watcher.IObject{
 						kubeClient.AppsV1().Deployments(""),
 						kubeClient.AppsV1().StatefulSets(""),
+						kubeClient.CoreV1().Nodes(),
 					})
 				if err != nil {
 					klog.Error(err)
