@@ -12,43 +12,53 @@ type BridgeController struct {
 	KubeClient *kubernetes.Clientset
 }
 
-func NewBridgeController(kubeClient *kubernetes.Clientset) *BridgeController {
-	return &BridgeController{
-		KubeClient: kubeClient,
-	}
-}
 func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployment) {
 	resourceType := "Deployment"
-	klog.Infof("%s | Resource: %s | %s | %s | %d | %s ", event.Type, res.Namespace, resourceType, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+	//klog.Infof("%s | Resource: %s | %s | %s | %d | %s ", event.Type, res.Namespace, resourceType, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
 
 	if res.Name == "" {
 		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
 		return
 	}
+	resource := Resource{
+		RType:     resourceType,
+		Name:      res.Name,
+		ID:        "",
+		Namespace: res.Namespace,
+		Replicas:  int64(res.Status.Replicas),
+		Image:     res.Spec.Template.Spec.Containers[0].Image,
+	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		firstOrCreateDeploymentStatefulset(res.Name, resourceType, res.Namespace)
+		UpsertDeploymentStatefulset(resource)
 		break
 	case watch.Deleted:
-		//todo: add delete processing
-
+		DeleteDeploymentStatefulset(resource)
 		break
 	}
 }
 func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.StatefulSet) {
 	resourceType := "StatefulSet"
-	klog.Infof("%s | Resource: %s | %s | %s | %d | %s ", event.Type, res.Namespace, resourceType, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
+	//klog.Infof("%s | Resource: %s | %s | %s | %d | %s ", event.Type, res.Namespace, resourceType, res.Name, res.Status.Replicas, res.Spec.Template.Spec.Containers[0].Image)
 
 	if res.Name == "" {
 		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
 		return
 	}
+	resource := Resource{
+		RType:     resourceType,
+		Name:      res.Name,
+		ID:        "",
+		Namespace: res.Namespace,
+		Replicas:  int64(res.Status.Replicas),
+		Image:     res.Spec.Template.Spec.Containers[0].Image,
+	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		firstOrCreateDeploymentStatefulset(res.Name, resourceType, res.Namespace)
+		UpsertDeploymentStatefulset(resource)
 		break
 	case watch.Deleted:
-		//todo: add delete processing
+		DeleteDeploymentStatefulset(resource)
 		break
 	}
 }
