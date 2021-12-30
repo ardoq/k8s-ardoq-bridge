@@ -174,7 +174,7 @@ func UpsertCluster(name string) string {
 			klog.Errorf("error creating Cluster: %s", err)
 		}
 		componentId = cmp.ID
-		klog.Infof("Cluster: %s: %s", component.Name, componentId)
+		klog.Infof("Cluster: %q: %s", component.Name, componentId)
 		return componentId
 	}
 	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
@@ -182,7 +182,7 @@ func UpsertCluster(name string) string {
 	if err != nil {
 		klog.Errorf("error updating Cluster: %s", err)
 	}
-	klog.Infof("Cluster: %s: %s", component.Name, componentId)
+	klog.Infof("Cluster: %q: %s", component.Name, componentId)
 	return componentId
 }
 func UpsertNamespace(name string) string {
@@ -207,7 +207,7 @@ func UpsertNamespace(name string) string {
 			klog.Errorf("error creating Namespace: %s", err)
 		}
 		componentId = cmp.ID
-		klog.Infof("Namespace: %s: %s", component.Name, componentId)
+		klog.Infof("Namespace: %q: %s", component.Name, componentId)
 		return componentId
 	}
 	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
@@ -215,7 +215,7 @@ func UpsertNamespace(name string) string {
 	if err != nil {
 		klog.Errorf("error updating Namespace: %s", err)
 	}
-	klog.Infof("Namespace: %s: %s", component.Name, componentId)
+	klog.Infof("Namespace: %q: %s", component.Name, componentId)
 	return componentId
 }
 func UpsertDeploymentStatefulset(resource Resource) string {
@@ -242,7 +242,7 @@ func UpsertDeploymentStatefulset(resource Resource) string {
 			klog.Errorf("error creating %s : %s", resource.RType, err)
 		}
 		componentId = cmp.ID
-		klog.Info(resource.RType + ": " + componentId)
+		klog.Infof("%s: %q: %s", resource.RType, resource.Name, componentId)
 		return componentId
 	}
 	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
@@ -250,7 +250,7 @@ func UpsertDeploymentStatefulset(resource Resource) string {
 	if err != nil {
 		klog.Errorf("error updating %s : %s", resource.RType, err)
 	}
-	klog.Infof("%s: %s: %s", resource.RType, resource.Name, componentId)
+	klog.Infof("%s: %q: %s", resource.RType, resource.Name, componentId)
 	return componentId
 }
 func DeleteDeploymentStatefulset(resource Resource) {
@@ -269,6 +269,6 @@ func DeleteDeploymentStatefulset(resource Resource) {
 	if err != nil {
 		klog.Errorf("error deleting %s : %s", resource.RType, err)
 	}
-	klog.Infof("%s: %s", resource.RType, resource.Name)
+	klog.Infof("%s: %q", resource.RType, resource.Name)
 	return
 }
