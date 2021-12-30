@@ -35,6 +35,7 @@ import (
 	"syscall"
 	"time"
 
+	"ArdoqK8sBridge/app/controllers"
 	"ArdoqK8sBridge/app/lib/runtime"
 	"ArdoqK8sBridge/app/lib/subscription"
 	"ArdoqK8sBridge/app/lib/watcher"
@@ -106,24 +107,15 @@ func main() {
 		}
 	}()
 
+	//initialise cluster
+	if os.Getenv("ARDOQ_CLUSTER") == "" {
+		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
+	}
+	klog.Info("Initialising cluster in Ardoq")
+	controllers.UpsertCluster(os.Getenv("ARDOQ_CLUSTER"))
+
 	klog.Info("Starting event buffer...")
-	/*
-		This is a default template file.
-		Add subscriptions and watchers to make it your own.
-	*/
-	//err = runtime.EventBuffer(ctx, kubeClient,
-	//	&subscription.Registry{
-	//		Subscriptions: []subscription.ISubscription{
-	//			subscriptions.DeploymentSubscriber{},
-	//			subscriptions.StatefulsetSubscriber{},
-	//		},
-	//	}, []watcher.IObject{
-	//		kubeClient.AppsV1().Deployments(""),
-	//		kubeClient.AppsV1().StatefulSets(""),
-	//	})
-	//if err != nil {
-	//	klog.Error(err)
-	//}
+
 	lock := &resourcelock.LeaseLock{
 		LeaseMeta: metav1.ObjectMeta{
 			Name:      leaseLockName,
@@ -150,6 +142,10 @@ func main() {
 			OnStartedLeading: func(ctx context.Context) {
 				// we're notified when we start - this is where you would
 				// usually put your code
+				/*
+					This is a default template file.
+					Add subscriptions and watchers to make it your own.
+				*/
 				err = runtime.EventBuffer(ctx, kubeClient,
 					&subscription.Registry{
 						Subscriptions: []subscription.ISubscription{
@@ -180,6 +176,7 @@ func main() {
 			},
 		},
 	})
+
 }
 
 func init() {
@@ -187,5 +184,5 @@ func init() {
 	flag.StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&leaseLockName, "lease-lock-name", "k8s-ardoq-bridge", "the lease lock resource name")
 	flag.StringVar(&leaseLockNamespace, "lease-lock-namespace", "default", "the lease lock resource namespace")
-	flag.StringVar(&id, "id", uuid.New().String(), "the holder identity name") //todo: change to hostname
+	flag.StringVar(&id, "id", uuid.New().String(), "the holder identity name")
 }
