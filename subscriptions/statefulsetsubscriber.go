@@ -27,4 +27,15 @@ func (d StatefulsetSubscriber) OnEvent(msg subscription.Message) {
 	if res.Labels["sync-to-ardoq"] != "" {
 		d.BridgeDataProvider.OnStatefulsetEvent(msg.Event, res)
 	}
+	if msg.Event.Type == watch.Modified && (res.Labels["sync-to-ardoq"] == "") {
+		resource := controllers.Resource{
+			RType:     "StatefulSet",
+			Name:      res.Name,
+			ID:        "",
+			Namespace: res.Namespace,
+			Replicas:  int64(res.Status.Replicas),
+			Image:     controllers.GetContainerImages(res.Spec.Template.Spec.Containers),
+		}
+		controllers.DeleteDeploymentStatefulset(resource)
+	}
 }
