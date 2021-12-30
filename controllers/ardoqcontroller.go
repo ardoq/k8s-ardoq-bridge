@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	"io"
 	"io/ioutil"
 	"k8s.io/klog"
 	"net/http"
@@ -120,7 +121,12 @@ func advancedSearch(searchType string, queryTypeName string, queryString string)
 	if err != nil {
 		klog.Fatal(err)
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			klog.Fatal(err)
+		}
+	}(res.Body)
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -246,4 +252,23 @@ func UpsertDeploymentStatefulset(resource Resource) string {
 	}
 	klog.Infof("%s: %s: %s", resource.RType, resource.Name, componentId)
 	return componentId
+}
+func DeleteDeploymentStatefulset(resource Resource) {
+	data, err := advancedSearch("component", resource.RType, resource.Name)
+	if err != nil {
+		klog.Error(err)
+		os.Exit(1)
+	}
+	var componentId string
+	if data.Path("total").Data().(float64) == 0 {
+		klog.Errorf("error deleting,does not exist: %s", err)
+		return
+	}
+	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
+	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	if err != nil {
+		klog.Errorf("error deleting %s : %s", resource.RType, err)
+	}
+	klog.Infof("%s: %s", resource.RType, resource.Name)
+	return
 }
