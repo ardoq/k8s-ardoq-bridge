@@ -3,13 +3,23 @@ package controllers
 import (
 	"context"
 	v1 "k8s.io/api/apps/v1"
+	v12 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
+	"strings"
 )
 
 type BridgeController struct {
 	KubeClient *kubernetes.Clientset
+}
+
+func getContainerImages(containers []v12.Container) string {
+	values := make([]string, 0, len(containers))
+	for _, v := range containers {
+		values = append(values, v.Image)
+	}
+	return strings.Join(values, ", ")
 }
 
 func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployment) {
@@ -26,7 +36,7 @@ func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployme
 		ID:        "",
 		Namespace: res.Namespace,
 		Replicas:  int64(res.Status.Replicas),
-		Image:     res.Spec.Template.Spec.Containers[0].Image,
+		Image:     getContainerImages(res.Spec.Template.Spec.Containers),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
@@ -51,7 +61,7 @@ func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.Statefu
 		ID:        "",
 		Namespace: res.Namespace,
 		Replicas:  int64(res.Status.Replicas),
-		Image:     res.Spec.Template.Spec.Containers[0].Image,
+		Image:     getContainerImages(res.Spec.Template.Spec.Containers),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
