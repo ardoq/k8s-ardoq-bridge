@@ -99,6 +99,7 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		KubeProxyVersion: res.Status.NodeInfo.KubeProxyVersion,
 		OperatingSystem:  res.Status.NodeInfo.OperatingSystem,
 		OSImage:          res.Status.NodeInfo.OSImage,
+		Provider:         res.Spec.ProviderID,
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
