@@ -74,7 +74,6 @@ func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.Statefu
 }
 func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	resourceType := "Node"
-	//klog.Infof("%s | Resource: %s  ", event.Type, res.ClusterName, res.Status.Capacity, res.Status.Allocatable, res.Status.NodeInfo.Architecture, res.Status.NodeInfo.ContainerRuntimeVersion, res.Status.NodeInfo.KernelVersion, res.Status.NodeInfo.KubeletVersion, res.Status.NodeInfo.KubeProxyVersion, res.Status.NodeInfo.OperatingSystem, res.Status.NodeInfo.OSImage)
 	if res.Name == "" {
 		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
 		return
@@ -85,13 +84,13 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		Capacity: NodeResources{
 			CPU:     res.Status.Capacity.Cpu().Value(),
 			Memory:  res.Status.Capacity.Memory().String(),
-			Storage: res.Status.Capacity.Storage().String(),
+			Storage: res.Status.Capacity.StorageEphemeral().String(),
 			Pods:    res.Status.Capacity.Pods().Value(),
 		},
 		Allocatable: NodeResources{
 			CPU:     res.Status.Allocatable.Cpu().Value(),
 			Memory:  res.Status.Allocatable.Memory().String(),
-			Storage: res.Status.Allocatable.Storage().String(),
+			Storage: res.Status.Allocatable.StorageEphemeral().String(),
 			Pods:    res.Status.Allocatable.Pods().Value(),
 		},
 		ContainerRuntime: res.Status.NodeInfo.ContainerRuntimeVersion,
