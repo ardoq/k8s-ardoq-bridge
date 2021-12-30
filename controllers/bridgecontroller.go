@@ -14,7 +14,7 @@ type BridgeController struct {
 	KubeClient *kubernetes.Clientset
 }
 
-func getContainerImages(containers []v12.Container) string {
+func GetContainerImages(containers []v12.Container) string {
 	values := make([]string, 0, len(containers))
 	for _, v := range containers {
 		values = append(values, v.Image)
@@ -36,7 +36,7 @@ func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployme
 		ID:        "",
 		Namespace: res.Namespace,
 		Replicas:  int64(res.Status.Replicas),
-		Image:     getContainerImages(res.Spec.Template.Spec.Containers),
+		Image:     GetContainerImages(res.Spec.Template.Spec.Containers),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
@@ -61,7 +61,7 @@ func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.Statefu
 		ID:        "",
 		Namespace: res.Namespace,
 		Replicas:  int64(res.Status.Replicas),
-		Image:     getContainerImages(res.Spec.Template.Spec.Containers),
+		Image:     GetContainerImages(res.Spec.Template.Spec.Containers),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
