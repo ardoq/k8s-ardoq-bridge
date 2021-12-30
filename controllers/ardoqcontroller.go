@@ -21,17 +21,18 @@ var (
 	cluster     = os.Getenv("ARDOQ_CLUSTER")
 )
 
-type searchResponse gabs.Container
-
-type Resoure struct {
-	Name string
-	ID   string
+type Resource struct {
+	RType     string
+	Name      string
+	ID        string
+	Namespace string
+	Replicas  int64
+	Image     string
 }
 
 func ardRestClient() *ardoq.APIClient {
 	a, err := ardoq.NewRestClient(baseUri, apiKey, org, "v0.0.0")
 	if err != nil {
-		//return nil, errors.Wrap(err, "cannot create new restclient")
 		fmt.Printf("cannot create new restclient %s", err)
 		os.Exit(1)
 	}
@@ -44,13 +45,13 @@ func stripBrackets(in string) string {
 func lookUpTypeId(name string) string {
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
 	if err != nil {
-		klog.Error("error during get workspace: %s", err)
+		klog.Error("error getting workspace: %s", err)
 	}
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	model, err := ardRestClient().Models().Read(context.TODO(), componentModel)
 	if err != nil {
-		klog.Error("error during get model: %s", err)
+		klog.Error("error getting model: %s", err)
 	}
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
@@ -125,88 +126,124 @@ func advancedSearch(searchType string, queryTypeName string, queryString string)
 	if err != nil {
 		klog.Fatal(err)
 	}
-	//var searchRes searchResponse
-	//err2 := json.Unmarshal(body, &searchRes)
-	parsed, err2 := gabs.ParseJSON(body)
-	if err2 != nil {
-		klog.Fatal(err2)
+	parsed, err := gabs.ParseJSON(body)
+	if err != nil {
+		klog.Fatal(err)
 	}
 	return parsed, nil
 }
-func firstOrCreateCluster(name string) string {
+func LookupCluster(name string) string {
 	data, err := advancedSearch("component", "Cluster", name)
-	var componentId string
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)
 	}
+	var componentId string
 	if data.Path("total").Data().(float64) == 0 {
-		component := ardoq.ComponentRequest{
-			Name:          name,
-			RootWorkspace: workspaceId,
-			TypeID:        lookUpTypeId("Cluster"),
-		}
-		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
-		if err != nil {
-			klog.Error("error during component create: %s", err)
-		}
-		componentId = cmp.ID
-		klog.Info("Cluster: " + componentId)
+		componentId = UpsertCluster(name)
 		return componentId
 	}
 	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
-	klog.Info("Cluster: " + componentId)
 	return componentId
 }
-func firstOrCreateNamespace(name string) string {
+
+func UpsertCluster(name string) string {
+	data, err := advancedSearch("component", "Cluster", name)
+	if err != nil {
+		klog.Error(err)
+		os.Exit(1)
+	}
+	var componentId string
+	component := ardoq.ComponentRequest{
+		Name:          name,
+		RootWorkspace: workspaceId,
+		TypeID:        lookUpTypeId("Cluster"),
+		Fields: map[string]interface{}{
+			"Tags": "Cluster",
+		},
+	}
+	if data.Path("total").Data().(float64) == 0 {
+		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		if err != nil {
+			klog.Errorf("error creating Cluster: %s", err)
+		}
+		componentId = cmp.ID
+		klog.Infof("Cluster: %s: %s", component.Name, componentId)
+		return componentId
+	}
+	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
+	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	if err != nil {
+		klog.Errorf("error updating Cluster: %s", err)
+	}
+	klog.Infof("Cluster: %s: %s", component.Name, componentId)
+	return componentId
+}
+func UpsertNamespace(name string) string {
 	data, err := advancedSearch("component", "Namespace", name)
-	var componentId string
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)
 	}
+	var componentId string
+	component := ardoq.ComponentRequest{
+		Name:          name,
+		RootWorkspace: workspaceId,
+		Parent:        LookupCluster(cluster),
+		TypeID:        lookUpTypeId("Namespace"),
+		Fields: map[string]interface{}{
+			"tags": "Namespace",
+		},
+	}
 	if data.Path("total").Data().(float64) == 0 {
-		component := ardoq.ComponentRequest{
-			Name:          name,
-			RootWorkspace: workspaceId,
-			Parent:        firstOrCreateCluster(cluster),
-			TypeID:        lookUpTypeId("Namespace"),
-		}
 		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
 		if err != nil {
-			klog.Error("error during component create: %s", err)
+			klog.Errorf("error creating Namespace: %s", err)
 		}
 		componentId = cmp.ID
-		klog.Info("Namespace: " + componentId)
+		klog.Infof("Namespace: %s: %s", component.Name, componentId)
 		return componentId
 	}
 	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
-	klog.Info("Namespace: " + componentId)
+	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	if err != nil {
+		klog.Errorf("error updating Namespace: %s", err)
+	}
+	klog.Infof("Namespace: %s: %s", component.Name, componentId)
 	return componentId
 }
-func firstOrCreateDeploymentStatefulset(name string, resouceType string, namespace string) string {
-	data, err := advancedSearch("component", resouceType, name)
-	var componentId string
+func UpsertDeploymentStatefulset(resource Resource) string {
+	data, err := advancedSearch("component", resource.RType, resource.Name)
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)
 	}
+	var componentId string
+	component := ardoq.ComponentRequest{
+		Name:          resource.Name,
+		RootWorkspace: workspaceId,
+		Parent:        UpsertNamespace(resource.Namespace),
+		TypeID:        lookUpTypeId(resource.RType),
+		Fields: map[string]interface{}{
+			"tags":           resource.RType,
+			"resource_image": resource.Image,
+			"replicas":       resource.Replicas,
+		},
+	}
 	if data.Path("total").Data().(float64) == 0 {
-		component := ardoq.ComponentRequest{
-			Name:          name,
-			RootWorkspace: workspaceId,
-			Parent:        firstOrCreateNamespace(namespace),
-			TypeID:        lookUpTypeId(resouceType),
-		}
 		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
 		if err != nil {
-			klog.Error("error during component create: %s", err)
+			klog.Errorf("error creating %s : %s", resource.RType, err)
 		}
 		componentId = cmp.ID
-		klog.Info(resouceType + ": " + componentId)
+		klog.Info(resource.RType + ": " + componentId)
 		return componentId
 	}
 	componentId = stripBrackets(data.Search("results", "doc", "_id").String())
-	klog.Info(resouceType + ": " + componentId)
+	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	if err != nil {
+		klog.Errorf("error updating %s : %s", resource.RType, err)
+	}
+	klog.Infof("%s: %s: %s", resource.RType, resource.Name, componentId)
 	return componentId
 }
