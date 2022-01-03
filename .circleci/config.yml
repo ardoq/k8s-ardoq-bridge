@@ -1,0 +1,42 @@
+version: 2.1
+orbs:
+  ardoq: ardoq/orby@0.2
+  go: circleci/go@1.7.0
+
+filter-master: &filter-master
+  branches:
+    only:
+      - master
+      - main
+filter-test: &filter-test
+  branches:
+    only:
+      - test
+jobs:
+  build:
+    executor:
+      name: go/default
+      tag: '1.17'
+    steps:
+      - checkout
+      - go/load-cache
+      - go/mod-download
+      - go/save-cache
+workflows:
+  main:
+    jobs:
+      - build
+      - ardoq/build-and-deploy-docker:
+          name: deploy-docker-master
+          requires: [build]
+          filters: *filter-master
+          required-release-tag: 'v'
+          never-override-tag: $(cat image_version.txt)
+          image: ardoq/ardoq-k8s-bridge
+          tags: latest,$(cat image_version.txt)
+      - ardoq/build-and-deploy-docker:
+          name: deploy-docker-test
+          filters: *filter-test
+          requires: [build]
+          image: ardoq/ardoq-k8s-bridge
+          tags: test,$(cat image_version.txt)-${CIRCLE_SHA1:0:7}
