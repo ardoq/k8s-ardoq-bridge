@@ -1,35 +1,18 @@
-VERSION=`cat VERSION`
-.PHONY: publish docker install up down all test clean
+export KUBECONFIG ?= ${HOME}/.kube/config
 
-all: docker publish install
+# Active module mode, as we use Go modules to manage dependencies
+export GO111MODULE=on
+GOPATH=$(shell go env GOPATH)
+GOBIN=$(GOPATH)/bin
+GINKGO=$(GOBIN)/ginkgo
 
-rename: 
-	gomove github.com/AlexsJones/kubeops $(NAME)
+SOURCES := $(shell find . -name '*.go')
 
-run-builtin-example:
-	go run examples/builtin/main.go --kubeconfig=$(HOME)/.kube/config
+.PHONY: get-ginkgo
+## Installs Ginkgo CLI
+get-ginkgo:
+	@go install github.com/onsi/ginkgo/ginkgo
 
-run-crd-example:
-	go run examples/crd/main.go --kubeconfig=$(HOME)/.kube/config
-
-up:
-	kind create cluster --name=kind
-
-down:
-	kind delete cluster --name=kind
-
-publish:
-	kind load docker-image ardoqk8sbridge:$(VERSION) --name=kind
-
-docker:
-	docker build -t ardoqk8sbridge:$(VERSION) .
-
-install:
-	cd helm && helm install . --generate-name && cd ../
-
-delete:
-	helm ls --all --short | xargs -L1 helm delete
-
-list:
-	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
-
+.PHONY: gingko-tests
+gingko-tests: get-ginkgo
+	@$(GINKGO) -coverprofile=coverage.txt controllers

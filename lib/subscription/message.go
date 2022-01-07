@@ -7,5 +7,5 @@ import (
 
 type Message struct {
 	Client kubernetes.Interface
-	Event watch.Event
+	Event  watch.Event
 }

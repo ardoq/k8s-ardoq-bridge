@@ -29,13 +29,16 @@ func (d DeploymentSubscriber) OnEvent(msg subscription.Message) {
 	}
 	if msg.Event.Type == watch.Modified && (res.Labels["sync-to-ardoq"] == "") {
 		resource := controllers.Resource{
-			RType:     "Deployment",
-			Name:      res.Name,
-			ID:        "",
-			Namespace: res.Namespace,
-			Replicas:  int64(res.Status.Replicas),
-			Image:     controllers.GetContainerImages(res.Spec.Template.Spec.Containers),
+			ResourceType: "Deployment",
+			Name:         res.Name,
+			ID:           "",
+			Namespace:    res.Namespace,
+			Replicas:     int64(res.Status.Replicas),
+			Image:        controllers.GetContainerImages(res.Spec.Template.Spec.Containers),
 		}
-		controllers.DeleteDeploymentStatefulset(resource)
+		err := controllers.DeleteApplicationResource(resource)
+		if err != nil {
+			return
+		}
 	}
 }

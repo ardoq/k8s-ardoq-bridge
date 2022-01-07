@@ -31,19 +31,22 @@ func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployme
 		return
 	}
 	resource := Resource{
-		RType:     resourceType,
-		Name:      res.Name,
-		ID:        "",
-		Namespace: res.Namespace,
-		Replicas:  int64(res.Status.Replicas),
-		Image:     GetContainerImages(res.Spec.Template.Spec.Containers),
+		ResourceType: resourceType,
+		Name:         res.Name,
+		ID:           "",
+		Namespace:    res.Namespace,
+		Replicas:     int64(res.Status.Replicas),
+		Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		UpsertDeploymentStatefulset(resource)
+		UpsertApplicationResource(resource)
 		break
 	case watch.Deleted:
-		DeleteDeploymentStatefulset(resource)
+		err := DeleteApplicationResource(resource)
+		if err != nil {
+			return
+		}
 		break
 	}
 }
@@ -56,19 +59,22 @@ func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.Statefu
 		return
 	}
 	resource := Resource{
-		RType:     resourceType,
-		Name:      res.Name,
-		ID:        "",
-		Namespace: res.Namespace,
-		Replicas:  int64(res.Status.Replicas),
-		Image:     GetContainerImages(res.Spec.Template.Spec.Containers),
+		ResourceType: resourceType,
+		Name:         res.Name,
+		ID:           "",
+		Namespace:    res.Namespace,
+		Replicas:     int64(res.Status.Replicas),
+		Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		UpsertDeploymentStatefulset(resource)
+		UpsertApplicationResource(resource)
 		break
 	case watch.Deleted:
-		DeleteDeploymentStatefulset(resource)
+		err := DeleteApplicationResource(resource)
+		if err != nil {
+			return
+		}
 		break
 	}
 }
@@ -106,7 +112,10 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		UpsertNode(node)
 		break
 	case watch.Deleted:
-		DeleteNode(node)
+		err := DeleteNode(node)
+		if err != nil {
+			return
+		}
 		break
 	}
 }

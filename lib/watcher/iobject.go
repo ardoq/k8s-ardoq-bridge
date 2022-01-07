@@ -8,5 +8,4 @@ import (
 
 type IObject interface {
 	Watch(context context.Context, opts metav1.ListOptions) (watch.Interface, error)
-
 }

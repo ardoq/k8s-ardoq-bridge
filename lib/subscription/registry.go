@@ -9,7 +9,6 @@ type Registry struct {
 	Subscriptions []ISubscription
 }
 
-
 func (r *Registry) Add(subscription ISubscription) error {
 
 	r.Subscriptions = append(r.Subscriptions, subscription)

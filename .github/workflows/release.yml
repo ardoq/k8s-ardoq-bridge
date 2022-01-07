@@ -1,0 +1,64 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.17"
+  KIND_VERSION: "v0.11.1"
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-20.04
+    name: Run unit tests
+  integration-tests:
+    runs-on: ubuntu-20.04
+    needs:
+      - unit-tests
+    name: integration-tests
+  helm-tests:
+    runs-on: ubuntu-20.04
+#  push_to_registry:
+#    name: Push Docker image to GitHub Packages
+#    needs:
+#      - unit-tests
+#      - integration-tests
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Setup Go
+#        uses: actions/setup-go@v2
+#        with:
+#          go-version: ${{ env.GO_VERSION }}
+#      - name: Check out the repo
+#        uses: actions/checkout@v2
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v1
+#      - name: Set up Docker Buildx
+#        id: buildx
+#        uses: docker/setup-buildx-action@v1
+#        with:
+#          install: true
+#      - name: Login to GitHub Container Registry
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USER }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#
+#      - name: Push to GitHub Packages
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: .
+#          builder: ${{ steps.buildx.outputs.name }}
+#          push: true
+#          tags: |
+#            ghcr.io/${{ steps.userlower.outputs.lowercase }}/${{ steps.repolower.outputs.lowercase }}:latest
+#      - name: Release
+#        uses: goreleaser/goreleaser-action@v2
+#        with:
+#          version: v1.1.0
+#          args: release --rm-dist
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
