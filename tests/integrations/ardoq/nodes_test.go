@@ -1,4 +1,4 @@
-package controllers_test
+package ardoq_test
 
 import (
 	"ArdoqK8sBridge/app/controllers"
