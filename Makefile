@@ -14,5 +14,12 @@ get-ginkgo:
 	@go install github.com/onsi/ginkgo/ginkgo
 
 .PHONY: gingko-tests
-gingko-tests: get-ginkgo
-	@$(GINKGO) -coverprofile=coverage.txt controllers
+integration-tests: get-ginkgo
+	@$(GINKGO) \
+	-coverprofile=coverage.txt \
+	./tests/integrations/ardoq
+
+.PHONY: unit-tests
+## Runs unit tests with code coverage enabled
+unit-tests: $(SOURCES) get-ginkgo
+	go test -v -short -race -timeout 15m -coverprofile=coverage.txt ./...
