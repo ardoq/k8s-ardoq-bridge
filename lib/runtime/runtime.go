@@ -37,9 +37,9 @@ func EventBuffer(context context.Context, client k.Interface,
 		defer w.Stop()
 		if err != nil {
 			switch {
-			case err == io.EOF:
+			case errors.Is(err, io.EOF):
 				// watch closed normally
-			case err == io.ErrUnexpectedEOF:
+			case errors.Is(err, io.ErrUnexpectedEOF):
 				log.Infof("closed with unexpected EOF")
 			}
 		}
