@@ -1,0 +1,12 @@
+run:
+  timeout: 5m
+  skip-dirs:
+    - lib/
+linters:
+  enable:
+    - errorlint
+    - govet
+  disable:
+    - gosimple
+    - ineffassign
+    - staticcheck
