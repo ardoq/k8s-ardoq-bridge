@@ -139,8 +139,8 @@ jobs:
         run: ct lint-and-install --validate-maintainers=false --charts ${{ env.CHART_DIR }}
   release-snapshot:
     name: Release unversioned snapshot
-#    needs:
-#      - integration-tests
+    needs:
+      - integration-tests
     runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
