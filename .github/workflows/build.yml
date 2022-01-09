@@ -143,7 +143,7 @@ jobs:
         with:
           version: ${{ env.KIND_VERSION }}
       - name: Run chart-testing
-        run: ct lint-and-install --validate-maintainers=false --charts ${{ env.CHART_DIR }}
+        run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
   release-snapshot:
     name: Release unversioned snapshot
     needs:
