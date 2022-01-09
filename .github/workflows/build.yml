@@ -19,11 +19,6 @@ env:
   GO_VERSION: "1.17"
   KIND_VERSION: "v0.11.1"
   CHART_DIR: chart
-  ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
-  ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
-  ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
-  ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
-  ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
 
 jobs:
   verify-code:
@@ -55,6 +50,13 @@ jobs:
   unit-tests:
     name: Run unit tests
     runs-on: ubuntu-20.04
+    environment: "GITHUB CI"
+    env:
+      ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
+      ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
+      ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
+      ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
+      ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
