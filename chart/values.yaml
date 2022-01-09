@@ -7,7 +7,7 @@ replicaCount: 1
 rbac:
   create: true
 image:
-  repository: ianmuge/ardoq-k8s-bridge
+  repository: ardoq/ardoq-k8s-bridge
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
