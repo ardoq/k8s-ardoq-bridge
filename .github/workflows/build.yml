@@ -19,6 +19,11 @@ env:
   GO_VERSION: "1.17"
   KIND_VERSION: "v0.11.1"
   CHART_DIR: chart
+  ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
+  ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
+  ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
+  ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
+  ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
 
 jobs:
   verify-code:
@@ -64,12 +69,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Run unit tests
-        env:
-          ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
-          ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
-          ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
-          ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
-          ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
         run: make unit-tests
 #      - name: Upload code coverage
 #        uses: codecov/codecov-action@v2
