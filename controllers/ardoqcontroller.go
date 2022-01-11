@@ -106,6 +106,7 @@ func UpsertNamespace(name string) string {
 		}
 		componentId = cmp.ID
 		klog.Infof("Added Namespace: %q: %s", component.Name, componentId)
+		ApplyDelay()
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
