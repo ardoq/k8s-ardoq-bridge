@@ -6,7 +6,7 @@ import (
 )
 
 func ApplyDelay() {
-	time.Sleep(3 * time.Second)
+	time.Sleep(2 * time.Second)
 }
 func RandomInt(min, max int64) int64 {
 	return min + rand.Int63n(max-min)

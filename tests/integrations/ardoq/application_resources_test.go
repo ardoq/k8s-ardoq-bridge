@@ -50,7 +50,6 @@ var _ = Describe("Deployments", Ordered, func() {
 	Context("Deployment Ardoq Bridge tests", Ordered, func() {
 		BeforeAll(func() {
 			controllers.UpsertNamespace(namespace)
-			helper.ApplyDelay()
 		})
 		AfterAll(func() {
 			err := controllers.DeleteNamespace(namespace)
@@ -65,7 +64,6 @@ var _ = Describe("Deployments", Ordered, func() {
 		It("Can Update Deployment", func() {
 			deploy.Replicas += 1
 			Expect(controllers.UpsertApplicationResource(*deploy)).ShouldNot(BeNil())
-			helper.ApplyDelay()
 		})
 		It("Can Delete Deployment", func() {
 			Expect(controllers.DeleteApplicationResource(*deploy)).Should(BeNil())
@@ -120,7 +118,6 @@ var _ = Describe("StatefulSets", Ordered, func() {
 	Context("StatefulSet Ardoq Bridge tests", Ordered, func() {
 		BeforeAll(func() {
 			controllers.UpsertNamespace(namespace)
-			helper.ApplyDelay()
 		})
 		AfterAll(func() {
 			err := controllers.DeleteNamespace(namespace)
@@ -135,7 +132,6 @@ var _ = Describe("StatefulSets", Ordered, func() {
 		It("Can Update StatefulSet", func() {
 			sts.Replicas += 1
 			Expect(controllers.UpsertApplicationResource(*sts)).ShouldNot(BeNil())
-			helper.ApplyDelay()
 		})
 		It("Can Delete StatefulSet", func() {
 			Expect(controllers.DeleteApplicationResource(*sts)).Should(BeNil())
