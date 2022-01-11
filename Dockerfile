@@ -7,8 +7,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags "-extldflag
 CMD ["fresh"]
 
 FROM alpine
-COPY --from=builder /src/ardoqk8sbridge /app/
+COPY --from=builder /src/main /app/
 WORKDIR /app
 EXPOSE 8080
-#ENTRYPOINT ["/app/ardoqk8sbridge"]
-CMD ["/main"]
+ENTRYPOINT ["/app/main"]
+#CMD ["/main"]
