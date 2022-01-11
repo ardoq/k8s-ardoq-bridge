@@ -47,7 +47,7 @@ case "$step" in
 
 esac
 
-image_version_file="image_version.txt"
+image_version_file="VERSION"
 new_version="$MAJOR.$MINOR.$PATCH"
 
 echo "$new_version" > ${image_version_file}
