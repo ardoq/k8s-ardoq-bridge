@@ -17,21 +17,6 @@ var (
 	validResourceTypes = []string{"Deployment", "StatefulSet"}
 )
 
-func LookupCluster(name string) string {
-	data, err := AdvancedSearch("component", "Cluster", name)
-	if err != nil {
-		klog.Error(err)
-		os.Exit(1)
-	}
-	var componentId string
-	if data.Path("total").Data().(float64) == 0 {
-		componentId = UpsertCluster(name)
-		return componentId
-	}
-	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
-	return componentId
-}
-
 func UpsertCluster(name string) string {
 	data, err := AdvancedSearch("component", "Cluster", name)
 	if err != nil {
@@ -137,7 +122,8 @@ func DeleteNamespace(cluster string) error {
 	return nil
 }
 func UpsertApplicationResource(resource Resource) string {
-	data, err := AdvancedSearch("component", resource.ResourceType, resource.Name)
+	//data, err := AdvancedSearch("component", resource.ResourceType, resource.Name)
+	data, err := ApplicationResourceSearch(resource.Namespace, resource.ResourceType, resource.Name)
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)
@@ -172,7 +158,8 @@ func UpsertApplicationResource(resource Resource) string {
 	return componentId
 }
 func DeleteApplicationResource(resource Resource) error {
-	data, err := AdvancedSearch("component", resource.ResourceType, resource.Name)
+	//data, err := AdvancedSearch("component", resource.ResourceType, resource.Name)
+	data, err := ApplicationResourceSearch(resource.Namespace, resource.ResourceType, resource.Name)
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)

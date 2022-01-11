@@ -28,6 +28,33 @@ func StripBrackets(in string) string {
 	replacer := strings.NewReplacer("[\"", "", "\"]", "")
 	return replacer.Replace(in)
 }
+func LookupCluster(name string) string {
+	data, err := AdvancedSearch("component", "Cluster", name)
+	if err != nil {
+		klog.Error(err)
+		os.Exit(1)
+	}
+	var componentId string
+	if data.Path("total").Data().(float64) == 0 {
+		componentId = UpsertCluster(name)
+		return componentId
+	}
+	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
+	return componentId
+}
+func LookupNamespace(name string) string {
+	data, err := AdvancedSearch("component", "Namespace", name)
+	if err != nil {
+		klog.Error(err)
+		os.Exit(1)
+	}
+	var componentId string
+	if data.Path("total").Data().(float64) == 0 {
+		return componentId
+	}
+	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
+	return componentId
+}
 func lookUpTypeId(name string) string {
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
 	if err != nil {
@@ -92,6 +119,91 @@ func AdvancedSearch(searchType string, queryTypeName string, queryString string)
 				}
 			]
 		}`, searchType, workspaceId, queryTypeName, queryString))
+	payload := bytes.NewBuffer(searchQuery)
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		klog.Fatal(err)
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			klog.Fatal(err)
+		}
+	}(res.Body)
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	parsed, err := gabs.ParseJSON(body)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	return parsed, nil
+}
+func ApplicationResourceSearch(namespace string, resourceType string, resourceName string) (*gabs.Container, error) {
+	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
+	method := "POST"
+	parentId := LookupNamespace(namespace)
+	searchQuery := []byte(fmt.Sprintf(`{
+			"condition": "AND",
+			"rules": [
+				{
+					"id": "type",
+					"field": "type",
+					"type": "string",
+					"input": "select",
+					"operator": "equal",
+					"value": "component"
+				},
+				{
+					"condition": "AND",
+					"rules": [
+						{
+							"id": "rootWorkspace",
+							"field": "rootWorkspace",
+							"type": "string",
+							"input": "text",
+							"operator": "equal",
+							"value": "%s"
+						},
+						{
+							"id": "parent",
+							"field": "parent",
+							"type": "string",
+							"input": "text",
+							"operator": "equal",
+							"value": "%s"
+						},
+						{
+							"id": "typeName",
+							"field": "typeName",
+							"type": "string",
+							"input": "text",
+							"operator": "contains",
+							"value": "%s"
+						},
+						{
+							"id": "name",
+							"field": "name",
+							"type": "string",
+							"input": "text",
+							"operator": "contains",
+							"value": "%s"
+						}
+					]
+				}
+			]
+		}`, workspaceId, parentId, resourceType, resourceName))
 	payload := bytes.NewBuffer(searchQuery)
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
