@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func ardRestClient() *ardoq.APIClient {
@@ -133,4 +134,7 @@ func (n *Node) IsNodeValid() bool {
 		return true
 	}
 	return false
+}
+func ApplyDelay() {
+	time.Sleep(2 * time.Second)
 }
