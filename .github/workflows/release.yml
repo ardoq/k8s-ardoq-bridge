@@ -113,14 +113,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Push to GitHub Packages
         uses: docker/build-push-action@v2
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ardoq/ardoq-k8s-bridge:latest,ardoq/ardoq-k8s-bridge:$RELEASE_VERSION
+          tags: |
+          ardoq/ardoq-k8s-bridge:latest
+          ardoq/ardoq-k8s-bridge:${{ steps.vars.outputs.tag }}
       - name: Release
         uses: goreleaser/goreleaser-action@v2
         with:
