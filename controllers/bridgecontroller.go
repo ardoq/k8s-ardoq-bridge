@@ -10,6 +10,10 @@ import (
 	"strings"
 )
 
+var (
+	queue = make(chan Resource)
+)
+
 type BridgeController struct {
 	KubeClient *kubernetes.Clientset
 }
@@ -40,7 +44,7 @@ func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployme
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		UpsertApplicationResource(resource)
+		queue <- resource
 		break
 	case watch.Deleted:
 		err := DeleteApplicationResource(resource)
@@ -68,7 +72,7 @@ func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.Statefu
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		UpsertApplicationResource(resource)
+		queue <- resource
 		break
 	case watch.Deleted:
 		err := DeleteApplicationResource(resource)
@@ -117,6 +121,11 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 			return
 		}
 		break
+	}
+}
+func ResourceConsumer() {
+	for res := range queue {
+		UpsertApplicationResource(res)
 	}
 }
 func (b *BridgeController) ControlLoop(cancelContext context.Context) {
