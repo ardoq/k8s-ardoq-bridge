@@ -118,9 +118,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-          ardoq/ardoq-k8s-bridge:latest
-          ardoq/ardoq-k8s-bridge:${{ steps.vars.outputs.tag }}
+          tags: ardoq/ardoq-k8s-bridge:latest,ardoq/ardoq-k8s-bridge:${{ steps.vars.outputs.tag }}
       - name: Release
         uses: goreleaser/goreleaser-action@v2
         with:
