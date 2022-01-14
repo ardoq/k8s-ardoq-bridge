@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	queue = make(chan Resource)
+	upsertQueue = make(chan Resource)
+	deleteQueue = make(chan Resource)
 )
 
 type BridgeController struct {
@@ -44,13 +45,10 @@ func (b *BridgeController) OnDeploymentEvent(event watch.Event, res *v1.Deployme
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		queue <- resource
+		upsertQueue <- resource
 		break
 	case watch.Deleted:
-		err := DeleteApplicationResource(resource)
-		if err != nil {
-			return
-		}
+		deleteQueue <- resource
 		break
 	}
 }
@@ -72,13 +70,10 @@ func (b *BridgeController) OnStatefulsetEvent(event watch.Event, res *v1.Statefu
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		queue <- resource
+		upsertQueue <- resource
 		break
 	case watch.Deleted:
-		err := DeleteApplicationResource(resource)
-		if err != nil {
-			return
-		}
+		deleteQueue <- resource
 		break
 	}
 }
@@ -123,9 +118,17 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		break
 	}
 }
-func ResourceConsumer() {
-	for res := range queue {
+func ResourceUpsertConsumer() {
+	for res := range upsertQueue {
 		UpsertApplicationResource(res)
+	}
+}
+func ResourceDeleteConsumer() {
+	for res := range deleteQueue {
+		err := DeleteApplicationResource(res)
+		if err != nil {
+			return
+		}
 	}
 }
 func (b *BridgeController) ControlLoop(cancelContext context.Context) {

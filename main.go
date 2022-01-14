@@ -114,8 +114,9 @@ func main() {
 	klog.Info("Initialising cluster in Ardoq")
 	controllers.UpsertCluster(os.Getenv("ARDOQ_CLUSTER"))
 
-	//start Resource Consumer
-	go controllers.ResourceConsumer()
+	//start Resource Consumers
+	go controllers.ResourceUpsertConsumer()
+	go controllers.ResourceDeleteConsumer()
 
 	klog.Info("Starting event buffer...")
 
