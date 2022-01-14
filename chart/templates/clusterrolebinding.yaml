@@ -3,17 +3,17 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app: {{ template "ardoq-k8s-bridge.name" . }}
-    chart: {{ template "ardoq-k8s-bridge.chart" . }}
+    app: {{ template "k8s-ardoq-bridge.name" . }}
+    chart: {{ template "k8s-ardoq-bridge.chart" . }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
-  name: {{ template "ardoq-k8s-bridge.fullname" . }}
+  name: {{ template "k8s-ardoq-bridge.fullname" . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ template "ardoq-k8s-bridge.fullname" . }}
+  name: {{ template "k8s-ardoq-bridge.fullname" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ template "ardoq-k8s-bridge.serviceAccountName" . }}
+    name: {{ template "k8s-ardoq-bridge.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
   {{- end -}}

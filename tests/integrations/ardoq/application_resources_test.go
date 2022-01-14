@@ -1,8 +1,8 @@
 package ardoq_test
 
 import (
-	"ArdoqK8sBridge/app/controllers"
-	"ArdoqK8sBridge/app/tests/helper"
+	"K8SArdoqBridge/app/controllers"
+	"K8SArdoqBridge/app/tests/helper"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

@@ -2,7 +2,7 @@
 
 You will see in the code `./operators` defines how we filter and act on events
 
-Here is a simple example that adds a label to the ardoqk8sbridge pod when it is installed in the cluster as a deployment (through the helm chart).
+Here is a simple example that adds a label to the k8sardoqbridge pod when it is installed in the cluster as a deployment (through the helm chart).
 
 ```go 
 
@@ -19,11 +19,11 @@ func (ExamplePodOperator) WithEventType() []watch.EventType {
 }
 
 func (ExamplePodOperator) OnEvent(msg subscription.Message) {
-	// This is a silly example that checks the ardoqk8sbridge pod
+	// This is a silly example that checks the k8sardoqbridge pod
 	// When we add, delete or modify the pod
 	// Then we add an example label to it.
 	pod := msg.Event.Object.(*v1.Pod)
-	if pod.Labels["app.kubernetes.io/name"] == "ardoqk8sbridge" {
+	if pod.Labels["app.kubernetes.io/name"] == "k8sardoqbridge" {
 
 		log.Debugf("%v",pod)
 		existingLabels := pod.Labels

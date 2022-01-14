@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"ArdoqK8sBridge/app/tests/helper"
+	"K8SArdoqBridge/app/tests/helper"
 	"bytes"
 	"context"
 	"fmt"

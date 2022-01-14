@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"ArdoqK8sBridge/app/lib/metrics"
-	"ArdoqK8sBridge/app/lib/subscription"
-	"ArdoqK8sBridge/app/lib/watcher"
+	"K8SArdoqBridge/app/lib/metrics"
+	"K8SArdoqBridge/app/lib/subscription"
+	"K8SArdoqBridge/app/lib/watcher"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"

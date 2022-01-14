@@ -7,7 +7,7 @@ import (
 
 var (
 	TotalEventOps = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "ardoqk8sbridge_event_ops_total",
+		Name: "k8sardoqbridge_event_ops_total",
 		Help: "The total number of processed events",
 	})
 )

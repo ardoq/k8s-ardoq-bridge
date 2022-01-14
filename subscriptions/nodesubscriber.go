@@ -1,8 +1,8 @@
 package subscriptions
 
 import (
-	"ArdoqK8sBridge/app/controllers"
-	"ArdoqK8sBridge/app/lib/subscription"
+	"K8SArdoqBridge/app/controllers"
+	"K8SArdoqBridge/app/lib/subscription"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/klog"

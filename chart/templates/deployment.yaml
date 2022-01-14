@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ardoq-k8s-bridge.fullname" . }}
+  name: {{ include "k8s-ardoq-bridge.fullname" . }}
   labels:
-    {{- include "ardoq-k8s-bridge.labels" . | nindent 4 }}
+    {{- include "k8s-ardoq-bridge.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "ardoq-k8s-bridge.selectorLabels" . | nindent 6 }}
+      {{- include "k8s-ardoq-bridge.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "ardoq-k8s-bridge.selectorLabels" . | nindent 8 }}
+        {{- include "k8s-ardoq-bridge.selectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      serviceAccountName: {{ include "ardoq-k8s-bridge.serviceAccountName" . }}
+      serviceAccountName: {{ include "k8s-ardoq-bridge.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -29,9 +29,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - configMapRef:
-                name: {{ include "ardoq-k8s-bridge.fullname" . }}
+                name: {{ include "k8s-ardoq-bridge.fullname" . }}
             - secretRef:
-                name: {{ include "ardoq-k8s-bridge.fullname" . }}
+                name: {{ include "k8s-ardoq-bridge.fullname" . }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

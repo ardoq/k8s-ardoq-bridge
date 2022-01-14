@@ -1,4 +1,4 @@
-module ArdoqK8sBridge/app
+module K8SArdoqBridge/app
 
 go 1.15
 
