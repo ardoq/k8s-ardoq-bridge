@@ -25,7 +25,7 @@ func (d DeploymentSubscriber) OnEvent(msg subscription.Message) {
 
 	res := msg.Event.Object.(*v1.Deployment)
 	if res.Labels["sync-to-ardoq"] != "" {
-		d.BridgeDataProvider.OnDeploymentEvent(msg.Event, res)
+		d.BridgeDataProvider.OnApplicationResourceEvent(msg.Event, res)
 	}
 	if msg.Event.Type == watch.Modified && (res.Labels["sync-to-ardoq"] == "") {
 		resource := controllers.Resource{
@@ -36,7 +36,7 @@ func (d DeploymentSubscriber) OnEvent(msg subscription.Message) {
 			Replicas:     int64(res.Status.Replicas),
 			Image:        controllers.GetContainerImages(res.Spec.Template.Spec.Containers),
 		}
-		err := controllers.DeleteApplicationResource(resource)
+		err := controllers.GenericDelete(resource.ResourceType, resource)
 		if err != nil {
 			return
 		}

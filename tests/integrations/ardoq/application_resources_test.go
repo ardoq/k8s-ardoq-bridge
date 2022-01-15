@@ -49,28 +49,28 @@ var _ = Describe("Deployments", Ordered, func() {
 	})
 	Context("Deployment Ardoq Bridge tests", Ordered, func() {
 		BeforeAll(func() {
-			controllers.UpsertNamespace(namespace)
+			controllers.GenericUpsert("Namespace", namespace)
 		})
 		AfterAll(func() {
-			err := controllers.DeleteNamespace(namespace)
+			err := controllers.GenericDelete("Namespace", namespace)
 			if err != nil {
 				return
 			}
 		})
 		It("Can create Deployment", func() {
-			Expect(controllers.UpsertApplicationResource(*deploy)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("Deployment", *deploy)).ShouldNot(BeNil())
 			helper.ApplyDelay()
 		})
 		It("Can Update Deployment", func() {
 			deploy.Replicas += 1
-			Expect(controllers.UpsertApplicationResource(*deploy)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("Deployment", *deploy)).ShouldNot(BeNil())
 		})
 		It("Can Delete Deployment", func() {
-			Expect(controllers.DeleteApplicationResource(*deploy)).Should(BeNil())
+			Expect(controllers.GenericDelete("Deployment", *deploy)).Should(BeNil())
 		})
 		It("Can't Delete Non Existent Deployment", func() {
 			deploy.Name = helper.RandomString(10)
-			Expect(controllers.DeleteApplicationResource(*deploy)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("Deployment", *deploy)).ShouldNot(BeNil())
 		})
 	})
 })
@@ -117,28 +117,28 @@ var _ = Describe("StatefulSets", Ordered, func() {
 	})
 	Context("StatefulSet Ardoq Bridge tests", Ordered, func() {
 		BeforeAll(func() {
-			controllers.UpsertNamespace(namespace)
+			controllers.GenericUpsert("Namespace", namespace)
 		})
 		AfterAll(func() {
-			err := controllers.DeleteNamespace(namespace)
+			err := controllers.GenericDelete("Namespace", namespace)
 			if err != nil {
 				return
 			}
 		})
 		It("Can create StatefulSet", func() {
-			Expect(controllers.UpsertApplicationResource(*sts)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("StatefulSet", *sts)).ShouldNot(BeNil())
 			helper.ApplyDelay()
 		})
 		It("Can Update StatefulSet", func() {
 			sts.Replicas += 1
-			Expect(controllers.UpsertApplicationResource(*sts)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("StatefulSet", *sts)).ShouldNot(BeNil())
 		})
 		It("Can Delete StatefulSet", func() {
-			Expect(controllers.DeleteApplicationResource(*sts)).Should(BeNil())
+			Expect(controllers.GenericDelete("StatefulSet", *sts)).Should(BeNil())
 		})
 		It("Can't Delete Non Existent StatefulSet", func() {
 			sts.Name = helper.RandomString(10)
-			Expect(controllers.DeleteApplicationResource(*sts)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("StatefulSet", *sts)).ShouldNot(BeNil())
 		})
 	})
 })

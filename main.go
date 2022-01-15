@@ -112,7 +112,7 @@ func main() {
 		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
 	}
 	klog.Info("Initialising cluster in Ardoq")
-	controllers.UpsertCluster(os.Getenv("ARDOQ_CLUSTER"))
+	controllers.GenericUpsert("Cluster", os.Getenv("ARDOQ_CLUSTER"))
 
 	//start Resource Consumers
 	go controllers.ResourceUpsertConsumer()

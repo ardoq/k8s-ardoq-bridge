@@ -36,7 +36,7 @@ func LookupCluster(name string) string {
 	}
 	var componentId string
 	if data.Path("total").Data().(float64) == 0 {
-		componentId = UpsertCluster(name)
+		componentId = GenericUpsert("Cluster", cluster)
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
@@ -236,7 +236,7 @@ func ApplicationResourceSearch(namespace string, resourceType string, resourceNa
 	return parsed, nil
 }
 func (r *Resource) IsApplicationResourceValid() bool {
-	if r.Name != "" && r.Namespace != "" && r.ResourceType != "" && r.Image != "" && helper.Contains(validResourceTypes, r.ResourceType) {
+	if r.Name != "" && r.Namespace != "" && r.ResourceType != "" && r.Image != "" && helper.Contains(validApplicationResourceTypes, r.ResourceType) {
 		return true
 	}
 	return false
@@ -249,4 +249,12 @@ func (n *Node) IsNodeValid() bool {
 }
 func ApplyDelay() {
 	time.Sleep(2 * time.Second)
+}
+func Contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }

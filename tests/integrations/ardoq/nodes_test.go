@@ -82,22 +82,22 @@ var _ = Describe("Nodes", Ordered, func() {
 	})
 	Context("Node Ardoq Link tests", Ordered, func() {
 		It("Can create Node", func() {
-			Expect(controllers.UpsertNode(*node)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("Node", *node)).ShouldNot(BeNil())
 			helper.ApplyDelay()
 		})
 		It("Can Update Node", func() {
 			node.KernelVersion = "5.10.76-linuxkit-2"
 			node.KubeletVersion = "v1.23.0"
 			node.KubeProxyVersion = "v1.23.0"
-			Expect(controllers.UpsertNode(*node)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("Node", *node)).ShouldNot(BeNil())
 			helper.ApplyDelay()
 		})
 		It("Can Delete Node", func() {
-			Expect(controllers.DeleteNode(*node)).Should(BeNil())
+			Expect(controllers.GenericDelete("Node", *node)).Should(BeNil())
 		})
-		It("Can't Delete None Existent Node", func() {
+		It("Can't Delete Non Existent Node", func() {
 			node.Name = helper.RandomString(10)
-			Expect(controllers.DeleteNode(*node)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("Node", *node)).ShouldNot(BeNil())
 		})
 	})
 })

@@ -13,14 +13,14 @@ var _ = Describe("Namespaces", Ordered, func() {
 	})
 	Context("Namespace Ardoq Link tests", Ordered, func() {
 		It("Can create Namespace", func() {
-			Expect(controllers.UpsertNamespace(resourceName)).ShouldNot(BeNil())
+			Expect(controllers.GenericUpsert("Namespace", resourceName)).ShouldNot(BeNil())
 			helper.ApplyDelay()
 		})
 		It("Can Delete Namespace", func() {
-			Expect(controllers.DeleteNamespace(resourceName)).Should(BeNil())
+			Expect(controllers.GenericDelete("Namespace", resourceName)).Should(BeNil())
 		})
-		It("Can't Delete None Existent Namespace", func() {
-			Expect(controllers.DeleteNamespace(helper.RandomString(10))).ShouldNot(BeNil())
+		It("Can't Delete Non Existent Namespace", func() {
+			Expect(controllers.GenericDelete("Namespace", helper.RandomString(10))).ShouldNot(BeNil())
 		})
 	})
 })
