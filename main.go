@@ -24,7 +24,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/google/uuid"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
@@ -177,8 +176,7 @@ func main() {
 					// I just got the lock
 					return
 				}
-				hostname, _ := os.Hostname()
-				klog.Infof("new leader elected: %s | %s", hostname, identity)
+				klog.Infof("new leader elected: %s", identity)
 			},
 		},
 	})
@@ -186,9 +184,10 @@ func main() {
 }
 
 func init() {
+	hostname, _ := os.Hostname()
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&leaseLockName, "lease-lock-name", "k8s-ardoq-bridge", "the lease lock resource name")
 	flag.StringVar(&leaseLockNamespace, "lease-lock-namespace", "default", "the lease lock resource namespace")
-	flag.StringVar(&id, "id", uuid.New().String(), "the holder identity name")
+	flag.StringVar(&id, "id", hostname, "the holder identity name")
 }
