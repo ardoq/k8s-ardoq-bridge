@@ -51,7 +51,7 @@ image_version_file="VERSION"
 new_version="v$MAJOR.$MINOR.$PATCH"
 
 echo "$new_version" > ${image_version_file}
-sed -i "s/appVersion: .*/appVersion: $new_version/g" "./chart/Chart.yaml"
+sed -i "" "s/appVersion: .*/appVersion: $new_version/g" ./chart/Chart.yaml
 
 git add ${image_version_file} ./chart/Chart.yaml
 git commit -am "Release $new_version
