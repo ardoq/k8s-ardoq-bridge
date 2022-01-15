@@ -48,13 +48,14 @@ case "$step" in
 esac
 
 image_version_file="VERSION"
-new_version="$MAJOR.$MINOR.$PATCH"
+new_version="v$MAJOR.$MINOR.$PATCH"
 
 echo "$new_version" > ${image_version_file}
+sed -i "s/appVersion: .*/appVersion: $new_version/g" "./chart/Chart.yaml"
 
 git add ${image_version_file}
-git commit -am "Release v$new_version
+git commit -am "Release $new_version
 [ci deploy]"
-git tag "v$new_version"
+git tag "$new_version"
 
 echo "New release $new_version ready to be pushed"
