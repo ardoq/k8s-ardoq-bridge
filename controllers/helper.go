@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Jeffail/gabs"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	goCache "github.com/patrickmn/go-cache"
 	"io"
 	"io/ioutil"
 	"k8s.io/klog"
@@ -14,6 +15,10 @@ import (
 	"os"
 	"strings"
 	"time"
+)
+
+var (
+	c = goCache.New(5*time.Minute, 10*time.Minute)
 )
 
 func ardRestClient() *ardoq.APIClient {
@@ -56,6 +61,9 @@ func LookupNamespace(name string) string {
 	return componentId
 }
 func lookUpTypeId(name string) string {
+	if typeId, found := c.Get(name); found {
+		return typeId.(string)
+	}
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
 	if err != nil {
 		klog.Errorf("Error getting workspace: %s", err)
@@ -68,10 +76,12 @@ func lookUpTypeId(name string) string {
 	}
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
+		c.Set(name, cmpTypes[name], goCache.NoExpiration)
 		return cmpTypes[name]
 	} else {
 		return ""
 	}
+
 }
 
 func AdvancedSearch(searchType string, queryTypeName string, queryString string) (*gabs.Container, error) {
