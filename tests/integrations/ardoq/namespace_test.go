@@ -9,8 +9,6 @@ import (
 
 var _ = Describe("Namespaces", Ordered, func() {
 	var resourceName = helper.RandomString(10)
-	BeforeEach(func() {
-	})
 	Context("Namespace Ardoq Link tests", Ordered, func() {
 		It("Can create Namespace", func() {
 			Expect(controllers.GenericUpsert("Namespace", resourceName)).ShouldNot(BeNil())

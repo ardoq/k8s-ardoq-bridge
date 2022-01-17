@@ -9,8 +9,6 @@ import (
 
 var _ = Describe("Clusters", Ordered, func() {
 	var resourceName = helper.RandomString(10)
-	BeforeEach(func() {
-	})
 	Context("Cluster Ardoq Link tests", Ordered, func() {
 		It("Can create Cluster", func() {
 			Expect(controllers.GenericUpsert("Cluster", resourceName)).ShouldNot(BeNil())
