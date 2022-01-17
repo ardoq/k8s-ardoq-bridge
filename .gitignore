@@ -10,3 +10,5 @@ tmp/
 .devspace/
 devspace*
 .env
+#ignore sonarqube scanner
+.scannerwork

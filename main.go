@@ -138,8 +138,8 @@ func main() {
 		// get elected before your background loop finished, violating
 		// the stated goal of the lease.
 		ReleaseOnCancel: true,
-		LeaseDuration:   10 * time.Second, //todo: extend to 60
-		RenewDeadline:   7 * time.Second,  //todo: extend to 15
+		LeaseDuration:   10 * time.Second,
+		RenewDeadline:   7 * time.Second,
 		RetryPeriod:     5 * time.Second,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
