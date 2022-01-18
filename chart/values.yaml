@@ -62,3 +62,8 @@ ardoq:
   workspaceId: ""
   apiKey: ""
   cluster: ""
+
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
