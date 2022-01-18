@@ -15,7 +15,7 @@ env:
 
 jobs:
   ardoq-integration-tests:
-    name: Run unit tests
+    name: Run ardoq integration tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     env:
@@ -43,11 +43,11 @@ jobs:
   #        uses: codecov/codecov-action@v2
   #        with:
   #          files: ./coverage.txt
+  #todo: fix me use gexec instead of the helm chart
   k8s-integration-tests:
-    name: Run integration tests
+    name: Run kubernetes integration tests
     needs:
-      - unit-tests
-      - verify-code
+      - ardoq-integration-tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     env:
@@ -93,7 +93,7 @@ jobs:
   release:
     name: Release
     needs:
-      - integration-tests
+      - k8s-integration-tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     steps:

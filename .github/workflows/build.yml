@@ -50,7 +50,7 @@ jobs:
       - name: Vendor Go modules
         run: go mod vendor
   ardoq-integration-tests:
-    name: Run unit tests
+    name: Run ardoq integration tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     env:
@@ -78,11 +78,37 @@ jobs:
 #        uses: codecov/codecov-action@v2
 #        with:
 #          files: ./coverage.txt
+  test-helm-chart:
+    name: Test Helm Chart
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v1.1
+        with:
+          version: v3.5.0
+      - name: Set up python
+        uses: actions/setup-python@v2.3.1
+        with:
+          python-version: 3.7
+      - name: Setup Chart Linting
+        id: lint
+        uses: helm/chart-testing-action@v2.2.0
+      - name: Setup Kubernetes cluster (KIND)
+        uses: helm/kind-action@v1.2.0
+        with:
+          version: ${{ env.KIND_VERSION }}
+      - name: Run chart-testing
+        run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
   k8s-integration-tests:
-    name: Run integration tests
+    name: Run kubernetes integration tests
     needs:
-      - unit-tests
+      - ardoq-integration-tests
       - verify-code
+      - test-helm-chart
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     env:
@@ -125,37 +151,10 @@ jobs:
 #        uses: codecov/codecov-action@v2
 #        with:
 #          files: ./tests/integrations/ardoq/coverage.txt
-  test-helm-chart:
-    name: Test Helm Chart
-    needs:
-      - integration-tests
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
-      - name: Install Helm
-        uses: azure/setup-helm@v1.1
-        with:
-          version: v3.5.0
-      - name: Set up python
-        uses: actions/setup-python@v2.3.1
-        with:
-          python-version: 3.7
-      - name: Setup Chart Linting
-        id: lint
-        uses: helm/chart-testing-action@v2.2.0
-      - name: Setup Kubernetes cluster (KIND)
-        uses: helm/kind-action@v1.2.0
-        with:
-          version: ${{ env.KIND_VERSION }}
-      - name: Run chart-testing
-        run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
   release-snapshot:
     name: Release unversioned snapshot
     needs:
-      - integration-tests
+      - k8s-integration-tests
     runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
