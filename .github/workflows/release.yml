@@ -14,7 +14,7 @@ env:
   KIND_VERSION: "v0.11.1"
 
 jobs:
-  unit-tests:
+  ardoq-integration-tests:
     name: Run unit tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
@@ -31,22 +31,31 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Run unit tests
-        run: make unit-tests
-  #todo: enhance with kubernetes related tests
-  integration-tests:
+      - name: Run ardoq-integration-tests
+        run: make ardoq-integration-tests
+  #      - name: Upload code coverage
+  #        uses: codecov/codecov-action@v2
+  #        with:
+  #          files: ./coverage.txt
+  k8s-integration-tests:
     name: Run integration tests
     needs:
       - unit-tests
+      - verify-code
     runs-on: ubuntu-20.04
+    environment: "GITHUB CI"
+    env:
+      ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
+      ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
+      ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
+      ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
+      ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
     timeout-minutes: 15
     steps:
       - name: Setup Go
@@ -65,16 +74,22 @@ jobs:
         uses: engineerd/setup-kind@v0.5.0
         with:
           version: ${{ env.KIND_VERSION }}
+          image: ${{ env.KIND_IMAGE }}
+          name: kind-test
       - name: Test connection to Kubernetes cluster
         run: |
           kubectl cluster-info
           kubectl wait --for=condition=Ready nodes --all --timeout=300s
           kubectl describe node
-#      - name: Run integration tests
-#        run: |
-#          make integration-tests
-#        env:
-#          KUBECONFIG: /home/runner/.kube/config
+      - name: Run k8s-integration-tests
+        run: |
+          make k8s-integration-tests
+        env:
+          KUBECONFIG: /home/runner/.kube/config
+  #      - name: Upload code coverage
+  #        uses: codecov/codecov-action@v2
+  #        with:
+  #          files: ./tests/integrations/ardoq/coverage.txt
   release:
     name: Release
     needs:
