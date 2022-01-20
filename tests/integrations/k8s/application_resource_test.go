@@ -4,31 +4,26 @@ import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
 	"context"
-	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v12 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 	"k8s.io/utils/pointer"
-
-	//"github.com/onsi/gomega/gexec"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"os/exec"
 )
 
 var _ = Describe("ApplicationResource", Ordered, func() {
 	kubectlClient := helper.KubectlClient()
 	var deployResourceName = helper.RandomString(10)
 	var stsResourceName = helper.RandomString(10)
-	var namespace = "default"
 
 	BeforeAll(func() {
 		deploy := &v12.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      deployResourceName,
-				Namespace: namespace,
+				Namespace: v1.NamespaceDefault,
 				Labels: map[string]string{
 					"sync-to-ardoq": "true",
 				},
@@ -67,7 +62,7 @@ var _ = Describe("ApplicationResource", Ordered, func() {
 		sts := &v12.StatefulSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      stsResourceName,
-				Namespace: namespace,
+				Namespace: v1.NamespaceDefault,
 				Labels: map[string]string{
 					"sync-to-ardoq": "true",
 				},
@@ -133,15 +128,15 @@ var _ = Describe("ApplicationResource", Ordered, func() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Created deployment %q.\n", deployResult.GetObjectMeta().GetName())
+		klog.Infof("Created deployment %q.", deployResult.GetObjectMeta().GetName())
 		klog.Info("Creating statefulset...")
 		stsClient := kubectlClient.AppsV1().StatefulSets(v1.NamespaceDefault)
 		stsResult, err := stsClient.Create(context.TODO(), sts, metav1.CreateOptions{})
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Created statefulset %q.\n", stsResult.GetObjectMeta().GetName())
-		helper.ApplyDelay()
+		klog.Infof("Created statefulset %q.", stsResult.GetObjectMeta().GetName())
+		controllers.ApplyDelay()
 	})
 	AfterAll(func() {
 		deletePolicy := metav1.DeletePropagationForeground
@@ -176,9 +171,9 @@ var _ = Describe("ApplicationResource", Ordered, func() {
 				panic(err)
 			}
 			klog.Info("Deleted deployment.")
-			helper.ApplyDelay(10)
+			controllers.ApplyDelay(10)
 
-			data, err := controllers.ApplicationResourceSearch("default", "Deployment", deployResourceName)
+			data, err := controllers.ApplicationResourceSearch(v1.NamespaceDefault, "Deployment", deployResourceName)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data.Path("total").Data().(float64)).Should(BeZero())
 		})
@@ -186,7 +181,7 @@ var _ = Describe("ApplicationResource", Ordered, func() {
 	})
 	Context("StatefulSet tests", Ordered, func() {
 		It("Can fetch created StatefulSet", func() {
-			data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", stsResourceName)
+			data, err := controllers.ApplicationResourceSearch(v1.NamespaceDefault, "StatefulSet", stsResourceName)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data.Path("total").Data().(float64)).ShouldNot(BeZero())
 		})
@@ -200,8 +195,8 @@ var _ = Describe("ApplicationResource", Ordered, func() {
 				panic(err)
 			}
 			klog.Info("Deleted statefulset.")
-			helper.ApplyDelay(5)
-			data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", stsResourceName)
+			controllers.ApplyDelay(5)
+			data, err := controllers.ApplicationResourceSearch(v1.NamespaceDefault, "StatefulSet", stsResourceName)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data.Path("total").Data().(float64)).Should(BeZero())
 		})

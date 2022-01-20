@@ -1,7 +1,7 @@
 package k8s_test
 
 import (
-	"K8SArdoqBridge/app/tests/helper"
+	"K8SArdoqBridge/app/controllers"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"k8s.io/klog"
@@ -32,7 +32,7 @@ var _ = BeforeSuite(func() {
 	Eventually(session.Err, 5).Should(gbytes.Say(`.*Initialising cluster in Ardoq`))
 	Eventually(session.Err, 5).Should(gbytes.Say(`.*Starting event buffer`))
 	Eventually(session.Err, 15).Should(gbytes.Say(`.*successfully acquired lease.*`))
-	helper.ApplyDelay(10)
+	controllers.ApplyDelay(10)
 	klog.Info("Initializing Complete")
 })
 

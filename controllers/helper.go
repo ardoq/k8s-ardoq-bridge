@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"K8SArdoqBridge/app/tests/helper"
 	"bytes"
 	"context"
 	"fmt"
@@ -246,7 +245,7 @@ func ApplicationResourceSearch(namespace string, resourceType string, resourceNa
 	return parsed, nil
 }
 func (r *Resource) IsApplicationResourceValid() bool {
-	if r.Name != "" && r.Namespace != "" && r.ResourceType != "" && r.Image != "" && helper.Contains(validApplicationResourceTypes, r.ResourceType) {
+	if r.Name != "" && r.Namespace != "" && r.ResourceType != "" && r.Image != "" && Contains(validApplicationResourceTypes, r.ResourceType) {
 		return true
 	}
 	return false
@@ -257,8 +256,12 @@ func (n *Node) IsNodeValid() bool {
 	}
 	return false
 }
-func ApplyDelay() {
-	time.Sleep(4 * time.Second)
+func ApplyDelay(seconds ...time.Duration) {
+	if len(seconds) > 0 {
+		time.Sleep(seconds[0] * time.Second)
+	} else {
+		time.Sleep(5 * time.Second)
+	}
 }
 func Contains(s []string, str string) bool {
 	for _, v := range s {

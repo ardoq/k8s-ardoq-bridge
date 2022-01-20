@@ -53,13 +53,14 @@ var _ = Describe("Deployments", Ordered, func() {
 		})
 		AfterAll(func() {
 			err := controllers.GenericDelete("Namespace", namespace)
+			Expect(err).ShouldNot(HaveOccurred())
 			if err != nil {
 				return
 			}
 		})
 		It("Can create Deployment", func() {
 			Expect(controllers.GenericUpsert("Deployment", *deploy)).ShouldNot(BeNil())
-			helper.ApplyDelay()
+			controllers.ApplyDelay()
 		})
 		It("Can Update Deployment", func() {
 			deploy.Replicas += 1
@@ -121,13 +122,14 @@ var _ = Describe("StatefulSets", Ordered, func() {
 		})
 		AfterAll(func() {
 			err := controllers.GenericDelete("Namespace", namespace)
+			Expect(err).ShouldNot(HaveOccurred())
 			if err != nil {
 				return
 			}
 		})
 		It("Can create StatefulSet", func() {
 			Expect(controllers.GenericUpsert("StatefulSet", *sts)).ShouldNot(BeNil())
-			helper.ApplyDelay()
+			controllers.ApplyDelay()
 		})
 		It("Can Update StatefulSet", func() {
 			sts.Replicas += 1
