@@ -15,16 +15,7 @@ get-ginkgo:
 
 .PHONY: k8s-integration-tests
 k8s-integration-tests: $(SOURCES) get-ginkgo
-	kubectl apply --wait=true -Rf tests/integrations/k8s/manifests
-	kubectl wait --for=condition=ready --timeout=180s pod -l app=nginx
-	@helm upgrade --install k8s-ardoq-bridge ./chart --wait --set "ardoq.baseUri='${ARDOQ_BASEURI}',ardoq.org='${ARDOQ_ORG}',ardoq.workspaceId='${ARDOQ_WORKSPACE_ID}',ardoq.apiKey=${ARDOQ_APIKEY},ardoq.cluster='${ARDOQ_CLUSTER}'"
-	kubectl wait --for=condition=ready --timeout=180s pod -l app.kubernetes.io/name=k8s-ardoq-bridge
 	@$(GINKGO) ./tests/integrations/k8s
-	kubectl delete --wait=true -Rf tests/integrations/k8s/manifests
-	kubectl wait --for=delete --timeout=180s pod -l app=nginx
-	echo "Waiting for cleanup"
-	sleep 5
-	helm delete k8s-ardoq-bridge --wait
 
 .PHONY: ardoq-integration-tests
 ## Runs unit tests with code coverage enabled
