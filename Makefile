@@ -18,6 +18,11 @@ k8s-integration-tests: $(SOURCES) get-ginkgo
 	@$(GINKGO) ./tests/integrations/k8s
 
 .PHONY: ardoq-integration-tests
-## Runs unit tests with code coverage enabled
+## Runs ardoq integration tests
 ardoq-integration-tests: $(SOURCES) get-ginkgo
 	@$(GINKGO) ./tests/integrations/ardoq
+
+.PHONY: all-tests
+## Runs all tests
+all-tests: $(SOURCES) get-ginkgo
+	go test -v -short -race -timeout 15m ./...
