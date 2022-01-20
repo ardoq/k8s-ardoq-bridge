@@ -11,13 +11,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	k "k8s.io/client-go/kubernetes"
+	"k8s.io/klog/v2"
 	"sync"
+	"time"
 )
 
-//var (
-//	minWatchTimeout = 15 * time.Minute
-//	timeoutSeconds  = int64(minWatchTimeout.Seconds() * (rand.Float64() + 1.0))
-//)
+var (
+	timeoutSeconds = int64(0)
+)
 
 func EventBuffer(context context.Context, client k.Interface,
 	registry *subscription.Registry, obj []watcher.IObject) error {
@@ -29,47 +30,61 @@ func EventBuffer(context context.Context, client k.Interface,
 	for _, o := range obj {
 		funcObj := o
 		w, err := funcObj.Watch(context, metav1.ListOptions{
-			//TimeoutSeconds:      &timeoutSeconds,
+			TimeoutSeconds:      &timeoutSeconds,
 			AllowWatchBookmarks: true})
 		defer w.Stop()
 		if err != nil {
 			switch {
-			case errors.Is(err, io.EOF):
+			case err == io.EOF:
 				// watch closed normally
-			case errors.Is(err, io.ErrUnexpectedEOF):
-				log.Infof("closed with unexpected EOF")
+				klog.Infof("closed with EOF")
+			case err == io.ErrUnexpectedEOF:
+				klog.Infof("closed with unexpected EOF")
 			}
+			klog.Error(err)
 		}
 		watchers = append(watchers, w.ResultChan())
 	}
 	log.Debugf("%+v", watchers)
-
 	var wg sync.WaitGroup
 	wg.Add(len(watchers))
 	for x, o := range watchers {
-		go func(t int, c <-chan watch.Event) error {
-			defer wg.Done()
-			counter := 0
-			for {
-				select {
-				case update, hasUpdate := <-c:
-					if hasUpdate {
-						err := registry.OnEvent(subscription.Message{
-							Event:  update,
-							Client: client,
-						})
-						if err != nil {
-							return err
-						}
-						metrics.TotalEventOps.Inc()
-					}
-				}
-				counter++
-			}
+		x := x
+		o := o
+		go func() {
+			err := func(t int, c <-chan watch.Event) error {
+				defer wg.Done()
+				counter := 0
+				for {
+					select {
+					case update, hasUpdate := <-c:
+						if hasUpdate {
 
-		}(x, o)
+							err := registry.OnEvent(subscription.Message{
+								Event:  update,
+								Client: client,
+							})
+							if err != nil {
+								return err
+							}
+							metrics.TotalEventOps.Inc()
+						}
+						if !hasUpdate {
+							// the channel got closed, so we need to restart
+							klog.Info("Kubernetes hung up on us, restarting event watcher")
+						}
+					case <-time.After(30 * time.Minute):
+						// deal with the issue where we get no events
+						klog.Infof("Timeout, restarting event watcher")
+					}
+					counter++
+				}
+			}(x, o)
+			if err != nil {
+				klog.Error(err)
+			}
+		}()
 	}
 	wg.Wait()
-
 	return nil
 }
