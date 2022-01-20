@@ -18,12 +18,7 @@ jobs:
     name: Run ardoq integration tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
-    env:
-      ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
-      ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
-      ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
-      ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
-      ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
+
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -39,23 +34,18 @@ jobs:
             ${{ runner.os }}-go-
       - name: Run ardoq-integration-tests
         run: make ardoq-integration-tests
-  #      - name: Upload code coverage
-  #        uses: codecov/codecov-action@v2
-  #        with:
-  #          files: ./coverage.txt
-  #todo: fix me use gexec instead of the helm chart
+        env:
+          ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
+          ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
+          ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
+          ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
+          ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
   k8s-integration-tests:
     name: Run kubernetes integration tests
     needs:
       - ardoq-integration-tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
-    env:
-      ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
-      ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
-      ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
-      ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
-      ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
     timeout-minutes: 15
     steps:
       - name: Setup Go
@@ -86,10 +76,11 @@ jobs:
           make k8s-integration-tests
         env:
           KUBECONFIG: /home/runner/.kube/config
-  #      - name: Upload code coverage
-  #        uses: codecov/codecov-action@v2
-  #        with:
-  #          files: ./tests/integrations/ardoq/coverage.txt
+          ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
+          ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
+          ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
+          ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
+          ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
   release:
     name: Release
     needs:
