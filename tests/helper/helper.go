@@ -1,7 +1,11 @@
 package helper
 
 import (
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 	"math/rand"
+	"path/filepath"
 	"time"
 )
 
@@ -18,7 +22,7 @@ func RandomInt(min, max int64) int64 {
 
 func RandomString(n int) string {
 	rand.Seed(time.Now().UnixNano())
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	var letters = []rune("abcdefghijklmnopqrstuvwxyz")
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
@@ -32,4 +36,19 @@ func Contains(s []string, str string) bool {
 		}
 	}
 	return false
+}
+func KubectlClient() *kubernetes.Clientset {
+	var kubeconfig = ""
+	if home := homedir.HomeDir(); home != "" {
+		kubeconfig = filepath.Join(home, ".kube", "config")
+	}
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
+	return clientset
 }
