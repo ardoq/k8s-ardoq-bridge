@@ -15,14 +15,13 @@ get-ginkgo:
 
 .PHONY: k8s-integration-tests
 k8s-integration-tests: $(SOURCES) get-ginkgo
-	@$(GINKGO) ./tests/integrations/k8s
+	@$(GINKGO) -v -progress ./tests/integrations/k8s
 
 .PHONY: ardoq-integration-tests
 ## Runs ardoq integration tests
 ardoq-integration-tests: $(SOURCES) get-ginkgo
-	@$(GINKGO) ./tests/integrations/ardoq
+	@$(GINKGO) -v -progress  ./tests/integrations/ardoq
 
 .PHONY: all-tests
 ## Runs all tests
-all-tests: $(SOURCES) get-ginkgo
-	go test -v -short -race -timeout 15m ./...
+all-tests: $(SOURCES) ardoq-integration-tests k8s-integration-tests
