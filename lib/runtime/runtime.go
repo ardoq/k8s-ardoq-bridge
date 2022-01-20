@@ -1,38 +1,35 @@
 package runtime
 
 import (
-	"context"
-	"errors"
-	"io"
-	"math/rand"
-	"sync"
-	"time"
-
 	"K8SArdoqBridge/app/lib/metrics"
 	"K8SArdoqBridge/app/lib/subscription"
 	"K8SArdoqBridge/app/lib/watcher"
+	"context"
+	"errors"
 	log "github.com/sirupsen/logrus"
+	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	k "k8s.io/client-go/kubernetes"
+	"sync"
 )
 
-var (
-	minWatchTimeout = 5 * time.Minute
-	timeoutSeconds  = int64(minWatchTimeout.Seconds() * (rand.Float64() + 1.0))
-)
+//var (
+//	minWatchTimeout = 15 * time.Minute
+//	timeoutSeconds  = int64(minWatchTimeout.Seconds() * (rand.Float64() + 1.0))
+//)
 
 func EventBuffer(context context.Context, client k.Interface,
 	registry *subscription.Registry, obj []watcher.IObject) error {
 
 	if len(obj) == 0 {
-		return errors.New("no watchers selected, exiting.")
+		return errors.New("no watchers selected, exiting")
 	}
 	var watchers []<-chan watch.Event
 	for _, o := range obj {
 		funcObj := o
 		w, err := funcObj.Watch(context, metav1.ListOptions{
-			TimeoutSeconds:      &timeoutSeconds,
+			//TimeoutSeconds:      &timeoutSeconds,
 			AllowWatchBookmarks: true})
 		defer w.Stop()
 		if err != nil {
