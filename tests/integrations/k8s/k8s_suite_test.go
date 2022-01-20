@@ -4,7 +4,8 @@ import (
 	"K8SArdoqBridge/app/controllers"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -30,15 +31,18 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
 	Eventually(session.Err, 5).Should(gbytes.Say(`.*Initialising cluster in Ardoq`))
-	Eventually(session.Err, 5).Should(gbytes.Say(`.*Starting event buffer`))
-	Eventually(session.Err, 15).Should(gbytes.Say(`.*successfully acquired lease.*`))
+	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
+	Eventually(session.Err, 10).Should(gbytes.Say(`.*successfully acquired lease.*`))
 	controllers.ApplyDelay(10)
 	klog.Info("Initializing Complete")
 })
 
 var _ = AfterSuite(func() {
 	klog.Info("Cleanup")
+	//cleanup running binary
 	session.Kill()
 	gexec.CleanupBuildArtifacts()
+	//cleanup cluster in ardoq
+	_ = controllers.GenericDelete("Cluster", os.Getenv("ARDOQ_CLUSTER"))
 	klog.Info("Cleanup Complete...Terminating!!")
 })
