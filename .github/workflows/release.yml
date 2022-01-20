@@ -18,7 +18,6 @@ jobs:
     name: Run ardoq integration tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
-
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2
