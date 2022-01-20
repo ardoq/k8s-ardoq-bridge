@@ -258,7 +258,7 @@ func (n *Node) IsNodeValid() bool {
 	return false
 }
 func ApplyDelay() {
-	time.Sleep(2 * time.Second)
+	time.Sleep(4 * time.Second)
 }
 func Contains(s []string, str string) bool {
 	for _, v := range s {

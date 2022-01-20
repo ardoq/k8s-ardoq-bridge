@@ -9,7 +9,7 @@ func ApplyDelay(seconds ...time.Duration) {
 	if len(seconds) > 0 {
 		time.Sleep(seconds[0] * time.Second)
 	} else {
-		time.Sleep(3 * time.Second)
+		time.Sleep(4 * time.Second)
 	}
 }
 func RandomInt(min, max int64) int64 {

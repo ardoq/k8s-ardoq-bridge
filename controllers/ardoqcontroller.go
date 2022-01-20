@@ -93,9 +93,7 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 		}
 		componentId = cmp.ID
 		klog.Infof("Added %s: %q: %s", ardoqType, component.Name, componentId)
-		if Contains([]string{"Namespace"}, ardoqType) {
-			ApplyDelay()
-		}
+		ApplyDelay()
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
