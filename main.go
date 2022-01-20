@@ -30,6 +30,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -73,7 +74,11 @@ func main() {
 
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
+
 		log.Fatal(http.ListenAndServe(*addr, nil))
+	}()
+	go func() {
+		klog.Error(http.ListenAndServe(":7777", http.DefaultServeMux))
 	}()
 
 	klog.Info("Got watcher client...")
