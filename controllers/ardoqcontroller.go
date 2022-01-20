@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/Jeffail/gabs"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"os"
 	"reflect"
 )
