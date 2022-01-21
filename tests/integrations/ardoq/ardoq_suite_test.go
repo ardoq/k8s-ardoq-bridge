@@ -18,7 +18,7 @@ func TestArdoqController(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	klog.Info("Initializing")
-	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-"+os.Getenv("ARDOQ_CLUSTER"))
+	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-adq-"+os.Getenv("ARDOQ_CLUSTER"))
 	if err != nil {
 		klog.Error(err)
 	}

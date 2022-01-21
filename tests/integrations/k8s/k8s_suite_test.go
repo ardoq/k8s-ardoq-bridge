@@ -25,7 +25,7 @@ var (
 
 var _ = BeforeSuite(func() {
 	klog.Info("Initializing")
-	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-"+os.Getenv("ARDOQ_CLUSTER"))
+	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-k8s-"+os.Getenv("ARDOQ_CLUSTER"))
 	if err != nil {
 		klog.Error(err)
 	}
