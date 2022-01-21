@@ -29,6 +29,7 @@ var _ = BeforeSuite(func() {
 	if err != nil {
 		klog.Error(err)
 	}
+	klog.Infof("Creating cluster: %q", os.Getenv("ARDOQ_CLUSTER"))
 	publisherPath, err := gexec.Build("../../../main.go")
 	Expect(err).NotTo(HaveOccurred())
 	cmd := exec.Command(publisherPath)

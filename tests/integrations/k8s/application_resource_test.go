@@ -46,10 +46,12 @@ var _ = Describe("ApplicationResource", func() {
 			Eventually(session.ExitCode, 10).Should(BeZero())
 			klog.Info("Deleted deployment.")
 
-			controllers.ApplyDelay(5)
-			data, err := controllers.ApplicationResourceSearch("default", "Deployment", "web-deploy")
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data.Path("total").Data().(float64)).Should(BeZero())
+			Eventually(func() float64 {
+				data, err := controllers.ApplicationResourceSearch("default", "Deployment", "web-deploy")
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).Should(BeZero())
 		})
 	})
 
@@ -67,10 +69,12 @@ var _ = Describe("ApplicationResource", func() {
 			klog.Infof("Created statefulset")
 		})
 		It("Can fetch created StatefulSet", func() {
-			controllers.ApplyDelay(15)
-			data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data.Path("total").Data().(float64)).ShouldNot(BeZero())
+			Eventually(func() float64 {
+				data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).ShouldNot(BeZero())
 		})
 		It("Can not find deleted StatefulSets", func() {
 			klog.Info("Deleting statefulset...")
@@ -86,10 +90,12 @@ var _ = Describe("ApplicationResource", func() {
 			Eventually(session.ExitCode, 10).Should(BeZero())
 			klog.Info("Deleted statefulset.")
 
-			controllers.ApplyDelay(5)
-			data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(data.Path("total").Data().(float64)).Should(BeZero())
+			Eventually(func() float64 {
+				data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).Should(BeZero())
 		})
 	})
 })
