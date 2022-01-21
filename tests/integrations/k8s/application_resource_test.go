@@ -42,8 +42,6 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=delete", "--timeout=180s", "pod", "-l", "app=nginx,parent=deploy")
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			session.ExitCode()
-			Eventually(session.ExitCode, 10).Should(BeZero())
 			klog.Info("Deleted deployment.")
 
 			Eventually(func() float64 {
@@ -86,8 +84,6 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=delete", "--timeout=180s", "pod", "-l", "app=nginx,parent=sts")
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			session.ExitCode()
-			Eventually(session.ExitCode, 10).Should(BeZero())
 			klog.Info("Deleted statefulset.")
 
 			Eventually(func() float64 {
