@@ -85,7 +85,7 @@ var _ = Describe("ApplicationResource", func() {
 				panic(err)
 			}
 			klog.Info("Deleted deployment.")
-			controllers.ApplyDelay(10)
+			controllers.ApplyDelay(20)
 			data, err := controllers.ApplicationResourceSearch(v1.NamespaceDefault, "Deployment", deployResourceName)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data.Path("total").Data().(float64)).Should(BeZero())
@@ -182,7 +182,7 @@ var _ = Describe("ApplicationResource", func() {
 				panic(err)
 			}
 			klog.Info("Deleted statefulset.")
-			controllers.ApplyDelay(10)
+			controllers.ApplyDelay(15)
 			data, err := controllers.ApplicationResourceSearch(v1.NamespaceDefault, "StatefulSet", stsResourceName)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(data.Path("total").Data().(float64)).Should(BeZero())
