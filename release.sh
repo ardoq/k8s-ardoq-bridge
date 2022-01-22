@@ -17,7 +17,7 @@ fi
 base="$2"
 if [ -z "$2" ]
 then
-  base=$(git tag 2>/dev/null| tail -n 1)
+  base=$(git tag --sort=v:refname 2>/dev/null| tail -n 1)
   if [ -z "$base" ]
   then
     base=0.0.0
