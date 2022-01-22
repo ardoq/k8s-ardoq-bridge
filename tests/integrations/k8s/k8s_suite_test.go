@@ -5,9 +5,11 @@ import (
 	"K8SArdoqBridge/app/tests/helper"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"k8s.io/client-go/util/homedir"
 	"k8s.io/klog/v2"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -30,9 +32,15 @@ var _ = BeforeSuite(func() {
 		klog.Error(err)
 	}
 	klog.Infof("Creating cluster: %q", os.Getenv("ARDOQ_CLUSTER"))
+
 	publisherPath, err := gexec.Build("../../../main.go")
 	Expect(err).NotTo(HaveOccurred())
-	cmd := exec.Command(publisherPath)
+	var cmd *exec.Cmd
+	if os.Getenv("KUBECONFIG") != "" {
+		cmd = exec.Command(publisherPath, "--kubeconfig", os.Getenv("KUBECONFIG"))
+	} else if home := homedir.HomeDir(); home != "" {
+		cmd = exec.Command(publisherPath, "--kubeconfig", filepath.Join(home, ".kube", "config"))
+	}
 	session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
