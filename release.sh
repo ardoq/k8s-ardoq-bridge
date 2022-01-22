@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+#set -ex
 if ! git diff --quiet; then
     echo "You have uncommitted changes, please commit them before running release."
     exit 1
