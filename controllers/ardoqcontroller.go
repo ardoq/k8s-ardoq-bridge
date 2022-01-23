@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Jeffail/gabs"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	goCache "github.com/patrickmn/go-cache"
 	"k8s.io/klog/v2"
 	"os"
 	"reflect"
@@ -92,11 +93,47 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			klog.Errorf("Error creating %s: %s", resourceType, err)
 		}
 		componentId = cmp.ID
-		klog.Infof("Added %s: %q: %s", ardoqType, component.Name, componentId)
+		switch resourceType {
+		case "Namespace", "Cluster":
+			Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
+			break
+		case "Deployment", "StatefulSet":
+			resource.ID = componentId
+			Cache.Set("ResourceType/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+			break
+		case "Node":
+			node.ID = componentId
+			Cache.Set("ResourceType/"+resourceType+"/"+name, node, goCache.NoExpiration)
+			break
+		}
+		klog.Infof("Added %s: %q: %s", resourceType, component.Name, componentId)
 		ApplyDelay()
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
+	switch resourceType {
+	case "Namespace", "Cluster":
+		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
+			return cachedResource.(string)
+		} else {
+			Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
+		}
+		break
+	case "Deployment", "StatefulSet":
+		resource.ID = componentId
+		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
+			return componentId
+		}
+		Cache.Set("ResourceType/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+		break
+	case "Node":
+		node.ID = componentId
+		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Node) == node {
+			return componentId
+		}
+		Cache.Set("ResourceType/"+resourceType+"/"+name, node, goCache.NoExpiration)
+		break
+	}
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
 	if err != nil {
 		klog.Errorf("Error updating %s: %s", resourceType, err)
@@ -140,6 +177,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 		klog.Errorf("Error deleting %s : %s", resourceType, err)
 		return err
 	}
-	klog.Infof("Deleted %s: %q", ardoqType, name)
+	Cache.Delete("ResourceType/" + resourceType + "/" + name)
+	klog.Infof("Deleted %s: %q", resourceType, name)
 	return nil
 }

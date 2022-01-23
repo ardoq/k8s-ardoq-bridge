@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	c = goCache.New(5*time.Minute, 10*time.Minute)
+	Cache = goCache.New(5*time.Minute, 10*time.Minute)
 )
 
 func ardRestClient() *ardoq.APIClient {
@@ -51,8 +51,9 @@ func GenericLookup(resourceType string, name string) string {
 	Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
 	return componentId
 }
+
 func lookUpTypeId(name string) string {
-	if typeId, found := c.Get(name); found {
+	if typeId, found := Cache.Get("ArdoqTypes/" + name); found {
 		return typeId.(string)
 	}
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
@@ -67,7 +68,7 @@ func lookUpTypeId(name string) string {
 	}
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
-		c.Set(name, cmpTypes[name], goCache.NoExpiration)
+		Cache.Set("ArdoqTypes/"+name, cmpTypes[name], goCache.NoExpiration)
 		return cmpTypes[name]
 	} else {
 		return ""
