@@ -99,7 +99,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			break
 		case "Deployment", "StatefulSet":
 			resource.ID = componentId
-			Cache.Set("ResourceType/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+			Cache.Set("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource, goCache.NoExpiration)
 			break
 		case "Node":
 			node.ID = componentId
@@ -121,10 +121,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		break
 	case "Deployment", "StatefulSet":
 		resource.ID = componentId
-		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
+		if cachedResource, found := Cache.Get("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
 			return componentId
 		}
-		Cache.Set("ResourceType/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+		Cache.Set("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource, goCache.NoExpiration)
 		break
 	case "Node":
 		node.ID = componentId
@@ -177,7 +177,15 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 		klog.Errorf("Error deleting %s : %s", resourceType, err)
 		return err
 	}
-	Cache.Delete("ResourceType/" + resourceType + "/" + name)
+	switch resourceType {
+	case "Deployment", "StatefulSet":
+		Cache.Delete("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name)
+		break
+	default:
+		Cache.Delete("ResourceType/" + resourceType + "/" + name)
+		break
+	}
+
 	klog.Infof("Deleted %s: %q", resourceType, name)
 	return nil
 }
