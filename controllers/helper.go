@@ -32,31 +32,23 @@ func StripBrackets(in string) string {
 	replacer := strings.NewReplacer("[\"", "", "\"]", "")
 	return replacer.Replace(in)
 }
-func LookupCluster(name string) string {
-	data, err := AdvancedSearch("component", "Cluster", name)
+func GenericLookup(resourceType string, name string) string {
+	if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
+		return cachedResource.(string)
+	}
+	data, err := AdvancedSearch("component", resourceType, name)
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)
 	}
 	var componentId string
 	if data.Path("total").Data().(float64) == 0 {
-		componentId = GenericUpsert("Cluster", cluster)
+		componentId = GenericUpsert(resourceType, name)
+		Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
-	return componentId
-}
-func LookupNamespace(name string) string {
-	data, err := AdvancedSearch("component", "Namespace", name)
-	if err != nil {
-		klog.Error(err)
-		os.Exit(1)
-	}
-	var componentId string
-	if data.Path("total").Data().(float64) == 0 {
-		return componentId
-	}
-	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
+	Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
 	return componentId
 }
 func lookUpTypeId(name string) string {
@@ -162,7 +154,7 @@ func AdvancedSearch(searchType string, queryTypeName string, queryString string)
 func ApplicationResourceSearch(namespace string, resourceType string, resourceName string) (*gabs.Container, error) {
 	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
 	method := "POST"
-	parentId := LookupNamespace(namespace)
+	parentId := GenericLookup("Namespace", namespace)
 	searchQuery := []byte(fmt.Sprintf(`{
 			"condition": "AND",
 			"rules": [

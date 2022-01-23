@@ -54,10 +54,10 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 	}
 	switch ardoqType {
 	case "Namespace":
-		component.Parent = LookupCluster(cluster)
+		component.Parent = GenericLookup("Cluster", cluster)
 		break
 	case "Deployment", "StatefulSet":
-		component.Parent = GenericUpsert("Namespace", resource.Namespace)
+		component.Parent = GenericLookup("Namespace", resource.Namespace)
 		component.Fields = map[string]interface{}{
 			"tags":           resource.ResourceType,
 			"resource_image": resource.Image,
@@ -65,7 +65,7 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 		}
 		break
 	case "Node":
-		component.Parent = LookupCluster(cluster)
+		component.Parent = GenericLookup("Cluster", cluster)
 		component.Fields = map[string]interface{}{
 			"node_architecture":        node.Architecture,
 			"node_container_runtime":   node.ContainerRuntime,

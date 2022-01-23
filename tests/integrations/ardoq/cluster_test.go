@@ -15,7 +15,7 @@ var _ = Describe("Clusters", Ordered, func() {
 			controllers.ApplyDelay()
 		})
 		It("Can Lookup Cluster", func() {
-			Expect(controllers.LookupCluster(resourceName)).ShouldNot(BeNil())
+			Expect(controllers.GenericLookup("Cluster", resourceName)).ShouldNot(BeNil())
 		})
 		It("Can Delete Cluster", func() {
 			Expect(controllers.GenericDelete("Cluster", resourceName)).Should(BeNil())
