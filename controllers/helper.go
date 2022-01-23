@@ -44,11 +44,9 @@ func GenericLookup(resourceType string, name string) string {
 	var componentId string
 	if data.Path("total").Data().(float64) == 0 {
 		componentId = GenericUpsert(resourceType, name)
-		Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
-	Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
 	return componentId
 }
 
