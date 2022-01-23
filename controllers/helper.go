@@ -75,7 +75,7 @@ func lookUpTypeId(name string) string {
 
 }
 
-func AdvancedSearch(searchType string, queryTypeName string, queryString string) (*gabs.Container, error) {
+func AdvancedSearch(searchType string, resourceType string, name string) (*gabs.Container, error) {
 	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
 	method := "POST"
 	searchQuery := []byte(fmt.Sprintf(`{
@@ -119,7 +119,7 @@ func AdvancedSearch(searchType string, queryTypeName string, queryString string)
 					]
 				}
 			]
-		}`, searchType, workspaceId, queryTypeName, queryString))
+		}`, searchType, workspaceId, resourceType, name))
 	payload := bytes.NewBuffer(searchQuery)
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
