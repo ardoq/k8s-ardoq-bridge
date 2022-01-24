@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Jeffail/gabs"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	goCache "github.com/patrickmn/go-cache"
 	"k8s.io/klog/v2"
 	"os"
 	"reflect"
@@ -19,7 +20,7 @@ var (
 	validApplicationResourceTypes = []string{"Deployment", "StatefulSet"}
 )
 
-func GenericUpsert(ardoqType string, genericResource interface{}) string {
+func GenericUpsert(resourceType string, genericResource interface{}) string {
 	var (
 		data     *gabs.Container
 		err      error
@@ -27,17 +28,17 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 		node     Node
 		name     string
 	)
-	if Contains([]string{"Cluster", "Namespace"}, ardoqType) {
-		name = reflect.ValueOf(genericResource).String()
-		data, err = AdvancedSearch("component", ardoqType, name)
-	} else if Contains(validApplicationResourceTypes, ardoqType) {
+	if Contains([]string{"Cluster", "Namespace"}, resourceType) {
+		name = genericResource.(string)
+		data, err = AdvancedSearch("component", resourceType, name)
+	} else if Contains(validApplicationResourceTypes, resourceType) {
 		resource = genericResource.(Resource)
 		name = resource.Name
 		data, err = ApplicationResourceSearch(resource.Namespace, resource.ResourceType, name)
-	} else if ardoqType == "Node" {
+	} else if resourceType == "Node" {
 		node = genericResource.(Node)
 		name = node.Name
-		data, err = AdvancedSearch("component", ardoqType, name)
+		data, err = AdvancedSearch("component", resourceType, name)
 	} else {
 		err = errors.New("invalid resource type")
 	}
@@ -50,14 +51,14 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 	component := ardoq.ComponentRequest{
 		Name:          name,
 		RootWorkspace: workspaceId,
-		TypeID:        lookUpTypeId(ardoqType),
+		TypeID:        lookUpTypeId(resourceType),
 	}
-	switch ardoqType {
+	switch resourceType {
 	case "Namespace":
-		component.Parent = LookupCluster(cluster)
+		component.Parent = GenericLookup("Cluster", cluster)
 		break
 	case "Deployment", "StatefulSet":
-		component.Parent = GenericUpsert("Namespace", resource.Namespace)
+		component.Parent = GenericLookup("Namespace", resource.Namespace)
 		component.Fields = map[string]interface{}{
 			"tags":           resource.ResourceType,
 			"resource_image": resource.Image,
@@ -65,7 +66,7 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 		}
 		break
 	case "Node":
-		component.Parent = LookupCluster(cluster)
+		component.Parent = GenericLookup("Cluster", cluster)
 		component.Fields = map[string]interface{}{
 			"node_architecture":        node.Architecture,
 			"node_container_runtime":   node.ContainerRuntime,
@@ -89,22 +90,58 @@ func GenericUpsert(ardoqType string, genericResource interface{}) string {
 	if data.Path("total").Data().(float64) == 0 {
 		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
 		if err != nil {
-			klog.Errorf("Error creating %s: %s", ardoqType, err)
+			klog.Errorf("Error creating %s: %s", resourceType, err)
 		}
 		componentId = cmp.ID
-		klog.Infof("Added %s: %q: %s", ardoqType, component.Name, componentId)
+		switch resourceType {
+		case "Namespace", "Cluster":
+			Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
+			break
+		case "Deployment", "StatefulSet":
+			resource.ID = componentId
+			Cache.Set("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+			break
+		case "Node":
+			node.ID = componentId
+			Cache.Set("ResourceType/"+resourceType+"/"+name, node, goCache.NoExpiration)
+			break
+		}
+		klog.Infof("Added %s: %q: %s", resourceType, component.Name, componentId)
 		ApplyDelay()
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
+	switch resourceType {
+	case "Namespace", "Cluster":
+		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
+			return cachedResource.(string)
+		} else {
+			Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
+		}
+		break
+	case "Deployment", "StatefulSet":
+		resource.ID = componentId
+		if cachedResource, found := Cache.Get("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
+			return componentId
+		}
+		Cache.Set("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+		break
+	case "Node":
+		node.ID = componentId
+		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Node) == node {
+			return componentId
+		}
+		Cache.Set("ResourceType/"+resourceType+"/"+name, node, goCache.NoExpiration)
+		break
+	}
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
 	if err != nil {
-		klog.Errorf("Error updating %s: %s", ardoqType, err)
+		klog.Errorf("Error updating %s: %s", resourceType, err)
 	}
-	klog.Infof("Updated %s: %q: %s", ardoqType, component.Name, componentId)
+	klog.Infof("Updated %s: %q: %s", resourceType, component.Name, componentId)
 	return componentId
 }
-func GenericDelete(ardoqType string, genericResource interface{}) error {
+func GenericDelete(resourceType string, genericResource interface{}) error {
 	var (
 		data     *gabs.Container
 		err      error
@@ -112,17 +149,17 @@ func GenericDelete(ardoqType string, genericResource interface{}) error {
 		node     Node
 		name     string
 	)
-	if Contains([]string{"Cluster", "Namespace"}, ardoqType) {
+	if Contains([]string{"Cluster", "Namespace"}, resourceType) {
 		name = reflect.ValueOf(genericResource).String()
-		data, err = AdvancedSearch("component", ardoqType, name)
-	} else if Contains(validApplicationResourceTypes, ardoqType) {
+		data, err = AdvancedSearch("component", resourceType, name)
+	} else if Contains(validApplicationResourceTypes, resourceType) {
 		resource = genericResource.(Resource)
 		name = resource.Name
 		data, err = ApplicationResourceSearch(resource.Namespace, resource.ResourceType, name)
-	} else if ardoqType == "Node" {
+	} else if resourceType == "Node" {
 		node = genericResource.(Node)
 		name = node.Name
-		data, err = AdvancedSearch("component", ardoqType, name)
+		data, err = AdvancedSearch("component", resourceType, name)
 	} else {
 		err = errors.New("invalid resource type")
 	}
@@ -137,9 +174,18 @@ func GenericDelete(ardoqType string, genericResource interface{}) error {
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
 	err = ardRestClient().Components().Delete(context.TODO(), componentId)
 	if err != nil {
-		klog.Errorf("Error deleting %s : %s", ardoqType, err)
+		klog.Errorf("Error deleting %s : %s", resourceType, err)
 		return err
 	}
-	klog.Infof("Deleted %s: %q", ardoqType, name)
+	switch resourceType {
+	case "Deployment", "StatefulSet":
+		Cache.Delete("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name)
+		break
+	default:
+		Cache.Delete("ResourceType/" + resourceType + "/" + name)
+		break
+	}
+
+	klog.Infof("Deleted %s: %q", resourceType, name)
 	return nil
 }

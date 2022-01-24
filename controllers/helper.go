@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	c = goCache.New(5*time.Minute, 10*time.Minute)
+	Cache = goCache.New(5*time.Minute, 10*time.Minute)
 )
 
 func ardRestClient() *ardoq.APIClient {
@@ -32,35 +32,26 @@ func StripBrackets(in string) string {
 	replacer := strings.NewReplacer("[\"", "", "\"]", "")
 	return replacer.Replace(in)
 }
-func LookupCluster(name string) string {
-	data, err := AdvancedSearch("component", "Cluster", name)
+func GenericLookup(resourceType string, name string) string {
+	if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
+		return cachedResource.(string)
+	}
+	data, err := AdvancedSearch("component", resourceType, name)
 	if err != nil {
 		klog.Error(err)
 		os.Exit(1)
 	}
 	var componentId string
 	if data.Path("total").Data().(float64) == 0 {
-		componentId = GenericUpsert("Cluster", cluster)
+		componentId = GenericUpsert(resourceType, name)
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
 	return componentId
 }
-func LookupNamespace(name string) string {
-	data, err := AdvancedSearch("component", "Namespace", name)
-	if err != nil {
-		klog.Error(err)
-		os.Exit(1)
-	}
-	var componentId string
-	if data.Path("total").Data().(float64) == 0 {
-		return componentId
-	}
-	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
-	return componentId
-}
+
 func lookUpTypeId(name string) string {
-	if typeId, found := c.Get(name); found {
+	if typeId, found := Cache.Get("ArdoqTypes/" + name); found {
 		return typeId.(string)
 	}
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
@@ -75,7 +66,7 @@ func lookUpTypeId(name string) string {
 	}
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
-		c.Set(name, cmpTypes[name], goCache.NoExpiration)
+		Cache.Set("ArdoqTypes/"+name, cmpTypes[name], goCache.NoExpiration)
 		return cmpTypes[name]
 	} else {
 		return ""
@@ -83,7 +74,7 @@ func lookUpTypeId(name string) string {
 
 }
 
-func AdvancedSearch(searchType string, queryTypeName string, queryString string) (*gabs.Container, error) {
+func AdvancedSearch(searchType string, resourceType string, name string) (*gabs.Container, error) {
 	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
 	method := "POST"
 	searchQuery := []byte(fmt.Sprintf(`{
@@ -127,7 +118,7 @@ func AdvancedSearch(searchType string, queryTypeName string, queryString string)
 					]
 				}
 			]
-		}`, searchType, workspaceId, queryTypeName, queryString))
+		}`, searchType, workspaceId, resourceType, name))
 	payload := bytes.NewBuffer(searchQuery)
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
@@ -162,7 +153,7 @@ func AdvancedSearch(searchType string, queryTypeName string, queryString string)
 func ApplicationResourceSearch(namespace string, resourceType string, resourceName string) (*gabs.Container, error) {
 	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
 	method := "POST"
-	parentId := LookupNamespace(namespace)
+	parentId := GenericLookup("Namespace", namespace)
 	searchQuery := []byte(fmt.Sprintf(`{
 			"condition": "AND",
 			"rules": [
