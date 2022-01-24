@@ -9,7 +9,7 @@ on:
         description: The branch, tag or SHA to publish.
         required: true
 env:
-  HELM_REP: helm-charts
+  HELM_REP: k8s-ardoq-bridge
   GH_OWNER: ardoq
   CHART_DIR: chart
   KIND_VERSION: "v0.11.1"
@@ -38,7 +38,7 @@ jobs:
         with:
           version: ${{ env.KIND_VERSION }}
       - name: Run chart-testing
-        run: ct lint-and-install --validate-maintainers=false --charts ${{ env.CHART_DIR }}
+        run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
       - name: Install chart-releaser
         run: |
           wget https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
@@ -51,18 +51,16 @@ jobs:
         # Failed with upload the same version: https://github.com/helm/chart-releaser/issues/101
         continue-on-error: true
         run: |
-          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.ORG_REPO_TOKEN }} -p .cr-release-packages
+          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.GITHUB_TOKEN }} -p .cr-release-packages
       - name: Index helm chart
         run: |
           ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}/ -i index.yaml
       - name: Push index file
         uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
         env:
-          API_TOKEN_GITHUB: ${{ secrets.ORG_REPO_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
           source_file: 'index.yaml'
           destination_repo: '${{ env.GH_OWNER }}/${{ env.HELM_REP }}'
           destination_folder: '.'
           destination_branch: 'gh-pages'
-          user_email: ardoqbot@users.noreply.github.com
-          user_name: 'ardoqbot'
