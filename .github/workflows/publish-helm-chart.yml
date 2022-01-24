@@ -54,7 +54,7 @@ jobs:
           ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.GITHUB_TOKEN }} -p .cr-release-packages
       - name: Index helm chart
         run: |
-          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}/ -i index.yaml
+          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.GITHUB_TOKEN }} -c https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}/ -i index.yaml
       - name: Push index file
         uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
         env:
