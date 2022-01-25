@@ -24,8 +24,8 @@ jobs:
           fetch-depth: 0
       - name: Configure Git
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Install Helm
         uses: azure/setup-helm@v1.1
         with:
@@ -49,40 +49,24 @@ jobs:
 #          kubectl describe node
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.2.1
-        with:
-          charts_dir: ${{ env.CHART_DIR }}
-          charts_repo_url: https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}
+
+      - name: Install chart-releaser
+        run: |
+          wget https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
+          echo "baed2315a9bb799efb71d512c5198a2a3b8dcd139d7f22f878777cffcd649a37  chart-releaser_1.3.0_linux_amd64.tar.gz" | sha256sum -c -
+          tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
+      - name: Package helm chart
+        run: |
+          ./cr package ${{ env.CHART_DIR }}
+      - name: Upload helm chart
+        # Failed with upload the same version: https://github.com/helm/chart-releaser/issues/101
+        continue-on-error: true
+        run: |
+          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }}
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CR_OWNER: ${{ env.GH_OWNER }}
-          CR_GIT_REPO: ${{ env.HELM_REP }}
-#          CR_PACKAGE_PATH: ./docs/
-          CR_SKIP_EXISTING: false
-
-#      - name: Install chart-releaser
-#        run: |
-#          wget https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
-#          echo "baed2315a9bb799efb71d512c5198a2a3b8dcd139d7f22f878777cffcd649a37  chart-releaser_1.3.0_linux_amd64.tar.gz" | sha256sum -c -
-#          tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
-#      - name: Package helm chart
-#        run: |
-#          ./cr package ${{ env.CHART_DIR }}
-#      - name: Upload helm chart
-#        # Failed with upload the same version: https://github.com/helm/chart-releaser/issues/101
-#        continue-on-error: true
-#        run: |
-#          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.GITHUB_TOKEN }} -p ./${{ env.CHART_DIR }}
-#      - name: Index helm chart
-#        run: |
-#          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --token ${{ secrets.GITHUB_TOKEN }} -c https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}/ --pages-branch gh-pages -p ./${{ env.CHART_DIR }} -i index.yaml
-#      - name: Push index file
-#        uses: dmnemec/copy_file_to_another_repo_action@v1.1.1
-#        env:
-#          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          source_file: 'index.yaml'
-#          destination_repo: '${{ env.GH_OWNER }}/${{ env.HELM_REP }}'
-#          destination_folder: './docs/'
-#          destination_branch: 'gh-pages'
+      - name: Index helm chart
+        run: |
+          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://raw.githubusercontent.com/${{ env.GH_OWNER }}/${{ env.HELM_REP }}/gh-pages/ -i index.yaml --push
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
