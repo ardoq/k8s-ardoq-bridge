@@ -12,7 +12,12 @@ var _ = Describe("Namespaces", Ordered, func() {
 	Context("Namespace Ardoq Link tests", Ordered, func() {
 		It("Can create Namespace", func() {
 			Expect(controllers.GenericUpsert("Namespace", resourceName)).ShouldNot(BeNil())
-			controllers.ApplyDelay()
+			Eventually(func() float64 {
+				data, err := controllers.AdvancedSearch("component", "Namespace", resourceName)
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).ShouldNot(BeZero())
 		})
 		It("Can Delete Namespace", func() {
 			Expect(controllers.GenericDelete("Namespace", resourceName)).Should(BeNil())

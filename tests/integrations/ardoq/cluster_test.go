@@ -12,7 +12,12 @@ var _ = Describe("Clusters", Ordered, func() {
 	Context("Cluster Ardoq Link tests", Ordered, func() {
 		It("Can create Cluster", func() {
 			Expect(controllers.GenericUpsert("Cluster", resourceName)).ShouldNot(BeNil())
-			controllers.ApplyDelay()
+			Eventually(func() float64 {
+				data, err := controllers.AdvancedSearch("component", "Cluster", resourceName)
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).ShouldNot(BeZero())
 		})
 		It("Can Lookup Cluster", func() {
 			Expect(controllers.GenericLookup("Cluster", resourceName)).ShouldNot(BeNil())
