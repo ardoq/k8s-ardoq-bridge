@@ -33,10 +33,16 @@ jobs:
       - name: Setup Chart Linting
         id: lint
         uses: helm/chart-testing-action@v2.2.0
-      - name: Setup Kubernetes cluster (KIND)
-        uses: helm/kind-action@v1.2.0
-        with:
-          version: ${{ env.KIND_VERSION }}
+#      - name: Setup Kubernetes cluster (KIND)
+#        uses: helm/kind-action@v1.2.0
+#        with:
+#          version: ${{ env.KIND_VERSION }}
+#          name: kind-test
+#      - name: Test connection to Kubernetes cluster
+#        run: |
+#          kubectl cluster-info
+#          kubectl wait --for=condition=Ready nodes --all --timeout=300s
+#          kubectl describe node
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
       - name: Install chart-releaser
