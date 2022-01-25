@@ -98,6 +98,11 @@ jobs:
 #        with:
 #          version: ${{ env.KIND_VERSION }}
 #          name: kind-test
+#      - name: Test connection to Kubernetes cluster
+#        run: |
+#          kubectl cluster-info
+#          kubectl wait --for=condition=Ready nodes --all --timeout=300s
+#          kubectl describe node
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
   k8s-integration-tests:
@@ -123,10 +128,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Setup Kubernetes cluster (KIND)
-        uses: engineerd/setup-kind@v0.5.0
+        uses: helm/kind-action@v1.2.0
         with:
           version: ${{ env.KIND_VERSION }}
-          image: ${{ env.KIND_IMAGE }}
           name: kind-test
       - name: Test connection to Kubernetes cluster
         run: |
