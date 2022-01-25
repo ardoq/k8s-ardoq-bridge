@@ -18,17 +18,19 @@ func TestArdoqController(t *testing.T) {
 	RunSpecs(t, "Ardoq Controller Suite")
 }
 
+var tempClusterName = helper.RandomString(5) + "-adq-" + os.Getenv("ARDOQ_CLUSTER")
+
 var _ = BeforeSuite(func() {
 	klog.Info("Initializing")
-	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-adq-"+os.Getenv("ARDOQ_CLUSTER"))
+	err := os.Setenv("ARDOQ_CLUSTER", tempClusterName)
 	if err != nil {
 		klog.Error(err)
 	}
-	klog.Infof("Creating cluster: %q", os.Getenv("ARDOQ_CLUSTER"))
+	klog.Infof("Cluster to be used: %q", tempClusterName)
 	klog.Info("Initializing Complete")
 })
 
 var _ = AfterSuite(func() {
-	_ = controllers.GenericDelete("Cluster", os.Getenv("ARDOQ_CLUSTER"))
+	_ = controllers.GenericDelete("Cluster", tempClusterName)
 	klog.Info("Cleanup Complete...Terminating!!")
 })

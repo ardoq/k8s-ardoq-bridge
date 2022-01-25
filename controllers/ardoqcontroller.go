@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	baseUri                       = os.Getenv("ARDOQ_BASEURI")
-	apiKey                        = os.Getenv("ARDOQ_APIKEY")
-	org                           = os.Getenv("ARDOQ_ORG")
-	workspaceId                   = os.Getenv("ARDOQ_WORKSPACE_ID")
-	cluster                       = os.Getenv("ARDOQ_CLUSTER")
+	baseUri     = os.Getenv("ARDOQ_BASEURI")
+	apiKey      = os.Getenv("ARDOQ_APIKEY")
+	org         = os.Getenv("ARDOQ_ORG")
+	workspaceId = os.Getenv("ARDOQ_WORKSPACE_ID")
+	//cluster                       = os.Getenv("ARDOQ_CLUSTER")
 	validApplicationResourceTypes = []string{"Deployment", "StatefulSet"}
 )
 
@@ -55,7 +55,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 	switch resourceType {
 	case "Namespace":
-		component.Parent = GenericLookup("Cluster", cluster)
+		component.Parent = GenericLookup("Cluster", os.Getenv("ARDOQ_CLUSTER"))
 		break
 	case "Deployment", "StatefulSet":
 		component.Parent = GenericLookup("Namespace", resource.Namespace)
@@ -66,7 +66,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		}
 		break
 	case "Node":
-		component.Parent = GenericLookup("Cluster", cluster)
+		component.Parent = GenericLookup("Cluster", os.Getenv("ARDOQ_CLUSTER"))
 		component.Fields = map[string]interface{}{
 			"node_architecture":        node.Architecture,
 			"node_container_runtime":   node.ContainerRuntime,
