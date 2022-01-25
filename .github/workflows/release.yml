@@ -2,8 +2,7 @@
 # This workflow is triggered whenever we release a new version of Starboard
 # by creating an annotated Git tag and pushing it to the upstream Git repository.
 #
-#    git tag -a v0.0.1 -m 'Release v0.0.1'
-#    git push upstream v0.0.1
+# ./release.sh {patch|minor|major}
 name: Release
 on:
   push:
@@ -63,7 +62,7 @@ jobs:
         uses: helm/kind-action@v1.2.0
         with:
           version: ${{ env.KIND_VERSION }}
-          name: kind-test
+          cluster_name: kind-test
       - name: Test connection to Kubernetes cluster
         run: |
           kubectl cluster-info
