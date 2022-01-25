@@ -12,11 +12,10 @@ import (
 )
 
 var (
-	baseUri     = os.Getenv("ARDOQ_BASEURI")
-	apiKey      = os.Getenv("ARDOQ_APIKEY")
-	org         = os.Getenv("ARDOQ_ORG")
-	workspaceId = os.Getenv("ARDOQ_WORKSPACE_ID")
-	//cluster                       = os.Getenv("ARDOQ_CLUSTER")
+	baseUri                       = os.Getenv("ARDOQ_BASEURI")
+	apiKey                        = os.Getenv("ARDOQ_APIKEY")
+	org                           = os.Getenv("ARDOQ_ORG")
+	workspaceId                   = os.Getenv("ARDOQ_WORKSPACE_ID")
 	validApplicationResourceTypes = []string{"Deployment", "StatefulSet"}
 )
 
