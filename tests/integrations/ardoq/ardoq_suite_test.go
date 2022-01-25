@@ -7,8 +7,10 @@ import (
 	"os"
 	"testing"
 
+	_ "github.com/go-task/slim-sprig"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	_ "golang.org/x/tools/go/ast/inspector"
 )
 
 func TestArdoqController(t *testing.T) {
