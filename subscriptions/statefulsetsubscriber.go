@@ -22,13 +22,13 @@ func (StatefulsetSubscriber) WithEventType() []watch.EventType {
 }
 
 func (d StatefulsetSubscriber) OnEvent(msg subscription.Message) {
-
 	res := msg.Event.Object.(*v1.StatefulSet)
 	resourceType := "StatefulSet"
-	if res.Labels["sync-to-ardoq"] != "" {
+	namespaceLabels := getNamespaceLabels(res.Namespace)
+	if res.Labels["sync-to-ardoq"] != "" || namespaceLabels["sync-to-ardoq"] != "" {
 		d.BridgeDataProvider.OnApplicationResourceEvent(msg.Event, res)
 	}
-	if msg.Event.Type == watch.Modified && (res.Labels["sync-to-ardoq"] == "") {
+	if msg.Event.Type == watch.Modified && (res.Labels["sync-to-ardoq"] == "" && namespaceLabels["sync-to-ardoq"] == "") {
 		resource := controllers.Resource{
 			ResourceType: resourceType,
 			Name:         res.Name,
