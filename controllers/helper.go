@@ -34,7 +34,7 @@ func StripBrackets(in string) string {
 	replacer := strings.NewReplacer("[\"", "", "\"]", "")
 	return replacer.Replace(in)
 }
-func GenericLookup(resourceType string, name string) string {
+func GenericLookup(resourceType string, name string, deletion ...bool) string {
 	if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
 		return cachedResource.(string)
 	}
@@ -45,7 +45,9 @@ func GenericLookup(resourceType string, name string) string {
 	}
 	var componentId string
 	if data.Path("total").Data().(float64) == 0 {
-		componentId = GenericUpsert(resourceType, name)
+		if !(len(deletion) > 0 && deletion[0]) {
+			componentId = GenericUpsert(resourceType, name)
+		}
 		return componentId
 	}
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
@@ -152,10 +154,16 @@ func AdvancedSearch(searchType string, resourceType string, name string) (*gabs.
 	}
 	return parsed, nil
 }
-func ApplicationResourceSearch(namespace string, resourceType string, resourceName string) (*gabs.Container, error) {
+func ApplicationResourceSearch(namespace string, resourceType string, resourceName string, deletion ...bool) (*gabs.Container, error) {
 	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
 	method := "POST"
-	parentId := GenericLookup("Namespace", namespace)
+	parentId := ""
+	if len(deletion) > 0 && deletion[0] {
+		parentId = GenericLookup("Namespace", namespace, deletion[0])
+	} else {
+		parentId = GenericLookup("Namespace", namespace)
+	}
+
 	searchQuery := []byte(fmt.Sprintf(`{
 			"condition": "AND",
 			"rules": [

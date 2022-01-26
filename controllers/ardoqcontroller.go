@@ -154,7 +154,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	} else if Contains(validApplicationResourceTypes, resourceType) {
 		resource = genericResource.(Resource)
 		name = resource.Name
-		data, err = ApplicationResourceSearch(resource.Namespace, resource.ResourceType, name)
+		data, err = ApplicationResourceSearch(resource.Namespace, resource.ResourceType, name, true)
 	} else if resourceType == "Node" {
 		node = genericResource.(Node)
 		name = node.Name
