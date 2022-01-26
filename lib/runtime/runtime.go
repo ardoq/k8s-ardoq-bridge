@@ -71,11 +71,13 @@ func EventBuffer(context context.Context, client k.Interface,
 						}
 						if !hasUpdate {
 							// the channel got closed, so we need to restart
-							klog.Info("Kubernetes hung up on us, restarting event watcher")
+							wg.Done()
+							klog.Fatal("Kubernetes hung up on us, restarting event watcher")
 						}
 					case <-time.After(30 * time.Minute):
 						// deal with the issue where we get no events
-						klog.Infof("Timeout, restarting event watcher")
+						wg.Done()
+						klog.Fatal("Timeout, restarting event watcher")
 					}
 					counter++
 				}
