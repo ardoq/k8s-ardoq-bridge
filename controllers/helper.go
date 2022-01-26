@@ -9,6 +9,7 @@ import (
 	goCache "github.com/patrickmn/go-cache"
 	"io"
 	"io/ioutil"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	"net/http"
 	"os"
@@ -17,7 +18,8 @@ import (
 )
 
 var (
-	Cache = goCache.New(5*time.Minute, 10*time.Minute)
+	Cache     = goCache.New(5*time.Minute, 10*time.Minute)
+	ClientSet *kubernetes.Clientset
 )
 
 func ardRestClient() *ardoq.APIClient {
