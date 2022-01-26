@@ -28,7 +28,7 @@ func (d DeploymentSubscriber) OnEvent(msg subscription.Message) {
 	if res.Labels["sync-to-ardoq"] != "" || namespaceLabels["sync-to-ardoq"] != "" {
 		d.BridgeDataProvider.OnApplicationResourceEvent(msg.Event, res)
 	}
-	if msg.Event.Type == watch.Modified && (res.Labels["sync-to-ardoq"] == "" && namespaceLabels["sync-to-ardoq"] == "") {
+	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && (res.Labels["sync-to-ardoq"] == "" && namespaceLabels["sync-to-ardoq"] == "") {
 		resource := controllers.Resource{
 			ResourceType: "Deployment",
 			Name:         res.Name,
