@@ -24,11 +24,11 @@ func (DeploymentSubscriber) WithEventType() []watch.EventType {
 func (d DeploymentSubscriber) OnEvent(msg subscription.Message) {
 
 	res := msg.Event.Object.(*v1.Deployment)
-	namespaceLabels := getNamespaceLabels(res.Namespace)
-	if res.Labels["sync-to-ardoq"] != "" || namespaceLabels["sync-to-ardoq"] != "" {
+	if res.Labels["sync-to-ardoq"] != "" {
 		d.BridgeDataProvider.OnApplicationResourceEvent(msg.Event, res)
 	}
-	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && (res.Labels["sync-to-ardoq"] == "" && namespaceLabels["sync-to-ardoq"] == "") {
+	//Perform cleanup if it was previously labeled, or we are booting
+	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && (res.Labels["sync-to-ardoq"] == "") {
 		resource := controllers.Resource{
 			ResourceType: "Deployment",
 			Name:         res.Name,
