@@ -92,6 +92,7 @@ func main() {
 	if err != nil {
 		klog.Fatalf("Error building watcher clientset: %s", err.Error())
 	}
+	controllers.ClientSet = kubeClient
 
 	klog.Info("Created new KubeConfig")
 
