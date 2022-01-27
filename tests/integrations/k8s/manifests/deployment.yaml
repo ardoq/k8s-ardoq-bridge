@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: web-deploy
   labels:
-    sync-to-ardoq: "true"
+    sync-to-ardoq: "enabled"
 spec:
   replicas: 2
   selector:
