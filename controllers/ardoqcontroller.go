@@ -135,7 +135,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
 	if err != nil {
-		klog.Errorf("Error updating %s: %s", resourceType, err)
+		klog.Errorf("Error updating %s|%s: %s", resourceType, name, err)
 	}
 	klog.Infof("Updated %s: %q: %s", resourceType, component.Name, componentId)
 	return componentId
@@ -173,7 +173,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
 	err = ardRestClient().Components().Delete(context.TODO(), componentId)
 	if err != nil {
-		klog.Errorf("Error deleting %s : %s", resourceType, err)
+		klog.Errorf("Error deleting %s|%s : %s", resourceType, name, err)
 		return err
 	}
 	switch resourceType {
