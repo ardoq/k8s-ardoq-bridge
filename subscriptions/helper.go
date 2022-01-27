@@ -13,3 +13,9 @@ func getNamespaceLabels(name string) map[string]string {
 	}
 	return namespace.GetLabels()
 }
+func PerformCleanup(namespaceLabels map[string]string, resourcelabels map[string]string) bool {
+	return (resourcelabels["sync-to-ardoq"] == "" || resourcelabels["sync-to-ardoq"] == "disabled") && !(namespaceLabels["sync-to-ardoq"] == "enabled" && resourcelabels["sync-to-ardoq"] == "")
+}
+func PerformSync(namespaceLabels map[string]string, resourcelabels map[string]string) bool {
+	return resourcelabels["sync-to-ardoq"] == "enabled" || (namespaceLabels["sync-to-ardoq"] == "enabled" && resourcelabels["sync-to-ardoq"] == "")
+}
