@@ -5,7 +5,7 @@ type Resource struct {
 	Name         string
 	ResourceType string
 	Namespace    string
-	Replicas     int64
+	Replicas     int32
 	Image        string
 }
 type NodeResources struct {

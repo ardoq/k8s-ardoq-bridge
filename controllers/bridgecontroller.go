@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -25,7 +27,7 @@ func GetContainerImages(containers []v12.Container) string {
 	for _, v := range containers {
 		values = append(values, v.Image)
 	}
-	return strings.Join(values, ", ")
+	return strings.Join(values, ",")
 }
 func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, genericResource interface{}) {
 	resourceType := reflect.TypeOf(genericResource).String()
@@ -40,7 +42,7 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Name:         res.Name,
 			ResourceType: "Deployment",
 			Namespace:    res.Namespace,
-			Replicas:     int64(res.Status.Replicas),
+			Replicas:     res.Status.Replicas,
 			Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
 		}
 	} else if resourceType == "*v1.StatefulSet" {
@@ -53,7 +55,7 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Name:         res.Name,
 			ResourceType: "StatefulSet",
 			Namespace:    res.Namespace,
-			Replicas:     int64(res.Status.Replicas),
+			Replicas:     res.Status.Replicas,
 			Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
 		}
 	} else {
@@ -68,6 +70,31 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 		deleteQueue <- resource
 		break
 	}
+}
+func (b *BridgeController) OnNamespaceEvent(event watch.Event, res *v12.Namespace) {
+	resourceType := "Namespace"
+	if res.Name == "" {
+		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+		return
+	}
+
+	list, err := ClientSet.AppsV1().Deployments(res.Name).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(fmt.Errorf("failed to get List deployments: %v", err))
+	}
+	for _, d := range list.Items {
+		if d.GetLabels()["sync-to-ardoq"] != "disabled" {
+			resource := Resource{
+				Name:         d.GetName(),
+				ResourceType: "StatefulSet",
+				Namespace:    res.Name,
+				Replicas:     *d.Spec.Replicas,
+				Image:        GetContainerImages(d.Spec.Template.Spec.Containers),
+			}
+			klog.Info(resource)
+		}
+	}
+
 }
 func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	resourceType := "Node"
@@ -110,13 +137,7 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		break
 	}
 }
-func (b *BridgeController) OnNamespaceEvent(event watch.Event, res *v12.Namespace) {
-	resourceType := "Namespace"
-	if res.Name == "" {
-		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
-		return
-	}
-}
+
 func ResourceUpsertConsumer() {
 	for res := range upsertQueue {
 		GenericUpsert(res.ResourceType, res)
