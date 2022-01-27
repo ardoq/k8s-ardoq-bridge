@@ -78,23 +78,25 @@ func (b *BridgeController) OnNamespaceEvent(event watch.Event, res *v12.Namespac
 		return
 	}
 
-	list, err := ClientSet.AppsV1().Deployments(res.Name).List(context.TODO(), metav1.ListOptions{})
+	deploys, err := ClientSet.AppsV1().Deployments(res.Name).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(fmt.Errorf("failed to get List deployments: %v", err))
 	}
-	for _, d := range list.Items {
+	for _, d := range deploys.Items {
 		if d.GetLabels()["sync-to-ardoq"] != "disabled" {
-			resource := Resource{
-				Name:         d.GetName(),
-				ResourceType: "StatefulSet",
-				Namespace:    res.Name,
-				Replicas:     *d.Spec.Replicas,
-				Image:        GetContainerImages(d.Spec.Template.Spec.Containers),
-			}
-			klog.Info(resource)
+			b.OnApplicationResourceEvent(event, d)
+		}
+
+	}
+	sts, err := ClientSet.AppsV1().StatefulSets(res.Name).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		panic(fmt.Errorf("failed to get List deployments: %v", err))
+	}
+	for _, d := range sts.Items {
+		if d.GetLabels()["sync-to-ardoq"] != "disabled" {
+			b.OnApplicationResourceEvent(event, d)
 		}
 	}
-
 }
 func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	resourceType := "Node"
