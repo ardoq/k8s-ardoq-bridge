@@ -110,6 +110,13 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		break
 	}
 }
+func (b *BridgeController) OnNamespaceEvent(event watch.Event, res *v12.Namespace) {
+	resourceType := "Namespace"
+	if res.Name == "" {
+		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+		return
+	}
+}
 func ResourceUpsertConsumer() {
 	for res := range upsertQueue {
 		GenericUpsert(res.ResourceType, res)

@@ -160,11 +160,13 @@ func main() {
 							subscriptions.DeploymentSubscriber{},
 							subscriptions.StatefulsetSubscriber{},
 							subscriptions.NodeSubscriber{},
+							subscriptions.NamespaceSubscriber{},
 						},
 					}, []watcher.IObject{
 						kubeClient.AppsV1().Deployments(""),
 						kubeClient.AppsV1().StatefulSets(""),
 						kubeClient.CoreV1().Nodes(),
+						kubeClient.CoreV1().Namespaces(),
 					})
 				if err != nil {
 					klog.Error(err)
