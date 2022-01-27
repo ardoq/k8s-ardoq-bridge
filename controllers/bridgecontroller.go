@@ -32,8 +32,8 @@ func GetContainerImages(containers []v12.Container) string {
 func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, genericResource interface{}) {
 	resourceType := reflect.TypeOf(genericResource).String()
 	resource := Resource{}
-	if resourceType == "*v1.Deployment" {
-		res := genericResource.(*v1.Deployment)
+	if strings.HasSuffix(resourceType, "Deployment") {
+		res := genericResource.(v1.Deployment)
 		if res.Name == "" {
 			klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
 			return
@@ -45,8 +45,8 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Replicas:     res.Status.Replicas,
 			Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
 		}
-	} else if resourceType == "*v1.StatefulSet" {
-		res := genericResource.(*v1.StatefulSet)
+	} else if strings.HasSuffix(resourceType, "StatefulSet") {
+		res := genericResource.(v1.StatefulSet)
 		if res.Name == "" {
 			klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
 			return
