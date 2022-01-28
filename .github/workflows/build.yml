@@ -49,31 +49,6 @@ jobs:
           skip-build-cache: true
       - name: Vendor Go modules
         run: go mod vendor
-  ardoq-integration-tests:
-    name: Run ardoq integration tests
-    runs-on: ubuntu-20.04
-    environment: "GITHUB CI"
-    steps:
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Run ardoq-integration-tests
-        run: make ardoq-integration-tests
-        env:
-          ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
-          ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
-          ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
-          ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
-          ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
   test-helm-chart:
     name: Test Helm Chart
     runs-on: ubuntu-20.04
@@ -105,10 +80,9 @@ jobs:
 #          kubectl describe node
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
-  k8s-integration-tests:
+  all-tests:
     name: Run kubernetes integration tests
     needs:
-      - ardoq-integration-tests
       - verify-code
       - test-helm-chart
     runs-on: ubuntu-20.04
@@ -139,7 +113,7 @@ jobs:
           kubectl describe node
       - name: Run k8s-integration-tests
         run: |
-          make k8s-integration-tests
+          make all-tests
         env:
           KUBECONFIG: /home/runner/.kube/config
           ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
@@ -150,7 +124,7 @@ jobs:
   release-snapshot:
     name: Release unversioned snapshot
     needs:
-      - k8s-integration-tests
+      - all-tests
     runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
