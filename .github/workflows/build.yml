@@ -80,8 +80,8 @@ jobs:
 #          kubectl describe node
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
-  all-tests:
-    name: Run kubernetes integration tests
+  tests:
+    name: Run tests
     needs:
       - verify-code
       - test-helm-chart
@@ -124,7 +124,7 @@ jobs:
   release-snapshot:
     name: Release unversioned snapshot
     needs:
-      - all-tests
+      - tests
     runs-on: ubuntu-20.04
     steps:
       - name: Setup Go

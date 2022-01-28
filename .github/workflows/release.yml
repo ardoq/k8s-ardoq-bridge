@@ -13,10 +13,8 @@ env:
   KIND_VERSION: "v0.11.1"
 
 jobs:
-  all-tests:
-    name: Run kubernetes integration tests
-    needs:
-      - ardoq-integration-tests
+  tests:
+    name: Run tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     timeout-minutes: 15
@@ -56,7 +54,7 @@ jobs:
   release:
     name: Release
     needs:
-      - all-tests
+      - tests
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     steps:
