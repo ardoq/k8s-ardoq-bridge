@@ -66,7 +66,7 @@ var _ = Describe("Resource Logic Tests", func() {
 
 		for _, x := range cases {
 			It(x.description, func() {
-				Expect(subscriptions.PerformCleanup(x.namespaceLabels, x.resourceLabels)).To(BeEquivalentTo(!x.expectation))
+				Expect(subscriptions.PerformSync(x.namespaceLabels, x.resourceLabels)).To(BeEquivalentTo(x.expectation))
 			})
 		}
 	})

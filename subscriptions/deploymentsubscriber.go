@@ -28,7 +28,7 @@ func (d DeploymentSubscriber) OnEvent(msg subscription.Message) {
 	}
 
 	//Perform cleanup if it was previously labeled, or we are booting /Reconciliation
-	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && PerformCleanup(getNamespaceLabels(res.Namespace), res.Labels) {
+	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && !PerformSync(getNamespaceLabels(res.Namespace), res.Labels) {
 		resource := controllers.Resource{
 			ResourceType: "Deployment",
 			Name:         res.Name,

@@ -28,7 +28,7 @@ func (d StatefulsetSubscriber) OnEvent(msg subscription.Message) {
 		d.BridgeDataProvider.OnApplicationResourceEvent(msg.Event, *res)
 	}
 	//Perform cleanup if it was previously labeled, or we are booting
-	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && PerformCleanup(getNamespaceLabels(res.Namespace), res.Labels) {
+	if (msg.Event.Type == watch.Modified || msg.Event.Type == watch.Added) && !PerformSync(getNamespaceLabels(res.Namespace), res.Labels) {
 		resource := controllers.Resource{
 			ResourceType: resourceType,
 			Name:         res.Name,
