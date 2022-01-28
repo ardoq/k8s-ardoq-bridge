@@ -22,6 +22,11 @@ k8s-integration-tests: $(SOURCES) get-ginkgo
 ardoq-integration-tests: $(SOURCES) get-ginkgo
 	@$(GINKGO) -v -progress -p  ./tests/integrations/ardoq
 
+.PHONY: unit-tests
+## Runs ardoq integration tests
+unit-tests: $(SOURCES) get-ginkgo
+	@$(GINKGO) -v -progress -p  ./tests/unit
+
 .PHONY: all-tests
 ## Runs all tests
-all-tests: $(SOURCES) ardoq-integration-tests k8s-integration-tests
+all-tests: $(SOURCES) unit-tests ardoq-integration-tests k8s-integration-tests

@@ -25,6 +25,7 @@ import (
 	"context"
 	"flag"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"log"
@@ -92,7 +93,11 @@ func main() {
 	if err != nil {
 		klog.Fatalf("Error building watcher clientset: %s", err.Error())
 	}
-
+	controllers.ClientSet = kubeClient
+	controllers.DynamicClient, err = dynamic.NewForConfig(cfg)
+	if err != nil {
+		klog.Fatalf("Error building watcher clientset: %s", err.Error())
+	}
 	klog.Info("Created new KubeConfig")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -159,11 +164,13 @@ func main() {
 							subscriptions.DeploymentSubscriber{},
 							subscriptions.StatefulsetSubscriber{},
 							subscriptions.NodeSubscriber{},
+							subscriptions.NamespaceSubscriber{},
 						},
 					}, []watcher.IObject{
 						kubeClient.AppsV1().Deployments(""),
 						kubeClient.AppsV1().StatefulSets(""),
 						kubeClient.CoreV1().Nodes(),
+						kubeClient.CoreV1().Namespaces(),
 					})
 				if err != nil {
 					klog.Error(err)

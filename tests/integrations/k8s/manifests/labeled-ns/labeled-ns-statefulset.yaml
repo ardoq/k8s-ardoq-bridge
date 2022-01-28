@@ -1,22 +1,31 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: web-deploy
+  name: labelled-ns
   labels:
     sync-to-ardoq: "enabled"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: labelled-ns-web-sts
+  namespace: labelled-ns
 spec:
-  replicas: 2
   selector:
     matchLabels:
       app: nginx
+  serviceName: "nginx"
+  replicas: 2
   template:
     metadata:
       labels:
         app: nginx
-        parent: deploy
+        parent: sts-labelled-ns
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: nginx
           image: nginx:1.14.2
           ports:
             - containerPort: 80
+              name: web

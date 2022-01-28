@@ -1,9 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: labelled-ns
+  labels:
+    sync-to-ardoq: "enabled"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-deploy
-  labels:
-    sync-to-ardoq: "enabled"
+  name: labelled-ns-web-deploy
+  namespace: labelled-ns
 spec:
   replicas: 2
   selector:
@@ -13,7 +19,7 @@ spec:
     metadata:
       labels:
         app: nginx
-        parent: deploy
+        parent: deploy-labelled-ns
     spec:
       containers:
         - name: nginx

@@ -13,7 +13,6 @@ import (
 	k "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	"sync"
-	"time"
 )
 
 var (
@@ -71,11 +70,11 @@ func EventBuffer(context context.Context, client k.Interface,
 						}
 						if !hasUpdate {
 							// the channel got closed, so we need to restart
-							klog.Info("Kubernetes hung up on us, restarting event watcher")
+							klog.Fatal("Kubernetes hung up on us, restarting event watcher")
 						}
-					case <-time.After(30 * time.Minute):
-						// deal with the issue where we get no events
-						klog.Infof("Timeout, restarting event watcher")
+						//case <-time.After(30 * time.Minute):
+						//	// deal with the issue where we get no events
+						//	klog.Fatal("Timeout, restarting event watcher")
 					}
 					counter++
 				}

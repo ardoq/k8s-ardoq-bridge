@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: web-sts
   labels:
-    sync-to-ardoq: "true"
+    sync-to-ardoq: "enabled"
 spec:
   selector:
     matchLabels:

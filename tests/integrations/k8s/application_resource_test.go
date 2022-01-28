@@ -24,7 +24,7 @@ var _ = Describe("ApplicationResource", func() {
 			Eventually(session.Out, 10).Should(gbytes.Say(".*pod.* met*"))
 			klog.Infof("Created deployment")
 		})
-		It("Can fetch created Deployments", func() {
+		It("Can fetch tagged Deployments", func() {
 			Eventually(func() float64 {
 				data, err := controllers.ApplicationResourceSearch("default", "Deployment", "web-deploy")
 				Expect(err).ShouldNot(HaveOccurred())
@@ -88,6 +88,55 @@ var _ = Describe("ApplicationResource", func() {
 
 			Eventually(func() float64 {
 				data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).Should(BeZero())
+		})
+	})
+	Context("Namespace tests", Ordered, func() {
+		BeforeAll(func() {
+			klog.Info("Creating resources in a labelled namespace...")
+			cmd := exec.Command("kubectl", "apply", "--wait=true", "-Rf", "manifests/labeled-ns/")
+			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session.Out, 5).Should(gbytes.Say(".*deployment.apps.* [created|unchanged|configured].*"))
+			Eventually(session.Out, 5).Should(gbytes.Say(".*statefulset.apps.* [created|unchanged|configured].*"))
+
+			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "parent=sts-labelled-ns", "-n", "labelled-ns")
+			stsSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(stsSession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+
+			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "parent=deploy-labelled-ns", "-n", "labelled-ns")
+			deploySession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(deploySession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+
+			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "parent=deploy-excluded", "-n", "labelled-ns")
+			excludedSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(excludedSession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+		})
+		It("Can fetch StatefulSets in a labelled namespace", func() {
+			Eventually(func() float64 {
+				data, err := controllers.ApplicationResourceSearch("labelled-ns", "StatefulSet", "labelled-ns-web-sts")
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).ShouldNot(BeZero())
+		})
+		It("Can fetch Deployments in a labelled namespace", func() {
+			Eventually(func() float64 {
+				data, err := controllers.ApplicationResourceSearch("labelled-ns", "Deployment", "labelled-ns-web-deploy")
+				Expect(err).ShouldNot(HaveOccurred())
+				parsedData := data.Path("total").Data().(float64)
+				return parsedData
+			}, 20).ShouldNot(BeZero())
+		})
+		It("Can not find Excluded resources", func() {
+			Eventually(func() float64 {
+				data, err := controllers.ApplicationResourceSearch("labelled-ns", "Deployment", "labelled-ns-disbaled-web-deploy")
 				Expect(err).ShouldNot(HaveOccurred())
 				parsedData := data.Path("total").Data().(float64)
 				return parsedData
