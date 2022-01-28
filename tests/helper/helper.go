@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-func RandomInt(min, max int64) int64 {
-	return min + rand.Int63n(max-min)
+func RandomInt(min, max int32) int32 {
+	return min + rand.Int31n(max-min)
 }
 
 func RandomString(n int) string {
