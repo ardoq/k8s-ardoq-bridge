@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -80,7 +79,7 @@ func (b *BridgeController) OnNamespaceEvent(event watch.Event, res *v12.Namespac
 
 	deploys, err := ClientSet.AppsV1().Deployments(res.Name).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		panic(fmt.Errorf("failed to get List deployments: %v", err))
+		klog.Errorf("failed to get List deployments: %w", err)
 	}
 	for _, d := range deploys.Items {
 		if d.GetLabels()["sync-to-ardoq"] != "disabled" {
@@ -90,7 +89,7 @@ func (b *BridgeController) OnNamespaceEvent(event watch.Event, res *v12.Namespac
 	}
 	sts, err := ClientSet.AppsV1().StatefulSets(res.Name).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		panic(fmt.Errorf("failed to get List deployments: %v", err))
+		klog.Errorf("failed to get List deployments: %v", err)
 	}
 	for _, d := range sts.Items {
 		if d.GetLabels()["sync-to-ardoq"] != "disabled" {
