@@ -59,7 +59,8 @@ var _ = Describe("Deployments", Ordered, func() {
 			}
 		})
 		It("Can create Deployment", func() {
-			Expect(controllers.GenericUpsert("Deployment", *deploy)).ShouldNot(BeNil())
+			deploy.ID = controllers.GenericUpsert("Deployment", *deploy)
+			Expect(deploy.ID).ShouldNot(BeNil())
 			Eventually(func() float64 {
 				data, err := controllers.ApplicationResourceSearch(deploy.Namespace, deploy.ResourceType, deploy.Name)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -133,7 +134,8 @@ var _ = Describe("StatefulSets", Ordered, func() {
 			}
 		})
 		It("Can create StatefulSet", func() {
-			Expect(controllers.GenericUpsert("StatefulSet", *sts)).ShouldNot(BeNil())
+			sts.ID = controllers.GenericUpsert("StatefulSet", *sts)
+			Expect(sts.ID).ShouldNot(BeNil())
 			Eventually(func() float64 {
 				data, err := controllers.ApplicationResourceSearch(sts.Namespace, sts.ResourceType, sts.Name)
 				Expect(err).ShouldNot(HaveOccurred())
