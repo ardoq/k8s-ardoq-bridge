@@ -13,8 +13,8 @@ require (
 	github.com/prometheus/client_golang v1.12.0
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/tools v0.1.5
-	k8s.io/api v0.23.2
-	k8s.io/apimachinery v0.23.2
+	k8s.io/api v0.23.3
+	k8s.io/apimachinery v0.23.3
 	k8s.io/client-go v0.23.2
 	k8s.io/klog/v2 v2.40.1
 )
