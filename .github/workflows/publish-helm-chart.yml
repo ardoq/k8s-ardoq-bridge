@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'chart/**'
+      - 'helm/chart/**'
   workflow_dispatch:
     inputs:
       ref:
@@ -17,17 +17,17 @@ on:
 env:
   HELM_REP: k8s-ardoq-bridge
   GH_OWNER: ardoq
-  CHART_DIR: chart
+  CHART_DIR: helm/chart
   KIND_VERSION: "v0.11.1"
 jobs:
   release:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.ref }}
-          fetch-depth: 0
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#        with:
+#          ref: ${{ github.event.inputs.ref }}
+#          fetch-depth: 0
       - name: Configure Git
         run: |
           git config --global user.name "$GITHUB_ACTOR"
@@ -56,32 +56,27 @@ jobs:
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
 
-      - name: Run chart-releaser
-        uses: stecky/yet-another-chart-releaser-action@v1.4.4
+      - name: Install chart-releaser
+        run: |
+          wget https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
+          echo "baed2315a9bb799efb71d512c5198a2a3b8dcd139d7f22f878777cffcd649a37  chart-releaser_1.3.0_linux_amd64.tar.gz" | sha256sum -c -
+          tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
+      - name: Package helm chart
+        run: |
+          ./cr package ${{ env.CHART_DIR }} -p helm
+      - name: Upload helm chart
+        run: |
+          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --skip-existing -p helm
         env:
-          YACR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v8.0.1
         with:
-          charts_dir: ${{ env.CHART_DIR }}
-          charts_repo_url: https://${{ env.GH_OWNER }}.github.io/${{ env.HELM_REP }}
-          packages_with_index: "true"
-
-#      - name: Install chart-releaser
-#        run: |
-#          wget https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
-#          echo "baed2315a9bb799efb71d512c5198a2a3b8dcd139d7f22f878777cffcd649a37  chart-releaser_1.3.0_linux_amd64.tar.gz" | sha256sum -c -
-#          tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
-#      - name: Package helm chart
-#        run: |
-#          ./cr package ${{ env.CHART_DIR }}
-#      - name: Upload helm chart
-#        # Failed with upload the same version: https://github.com/helm/chart-releaser/issues/101
-#        continue-on-error: true
-#        run: |
-#          ./cr upload -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} --skip-existing
-#        env:
-#          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      - name: Index helm chart
-#        run: |
-#          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://raw.githubusercontent.com/${{ env.GH_OWNER }}/${{ env.HELM_REP }}/gh-pages/ -i index.yaml --push
-#        env:
-#          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          default_author: github_actor
+          message: '[automated commit] uploaded archived helm chart'
+          add: 'helm/k8s-ardoq-bridge-*'
+      - name: Index helm chart
+        run: |
+          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://raw.githubusercontent.com/${{ env.GH_OWNER }}/${{ env.HELM_REP }}/main/ -i helm/index.yaml --pr
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
