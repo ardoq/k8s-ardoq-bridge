@@ -65,10 +65,10 @@ then
   fi
 fi
 
-sed -i "" "s/version: .*/version: $new_version/g" ./chart/Chart.yaml
-sed -i "" "s/appVersion: .*/appVersion: $latest_tagged_version/g" ./chart/Chart.yaml
+sed -i "" "s/version: .*/version: $new_version/g" ./helm/chart/Chart.yaml
+sed -i "" "s/appVersion: .*/appVersion: $latest_tagged_version/g" ./helm/chart/Chart.yaml
 
-git add CHART_VERSION ./chart/
+git add CHART_VERSION ./helm/chart/
 git commit -am "Upgraded helm chart version to $new_version appVersion to $latest_tagged_version"
 
 
