@@ -4,6 +4,9 @@ metadata:
   name: web-sts
   labels:
     sync-to-ardoq: "enabled"
+    ardoq/stack: "nginx"
+    ardoq/team: DevOps
+    ardoq/project: "TestProject"
 spec:
   selector:
     matchLabels:

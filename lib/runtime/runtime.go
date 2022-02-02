@@ -12,11 +12,14 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	k "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	"math/rand"
 	"sync"
+	"time"
 )
 
 var (
-	timeoutSeconds = int64(0)
+	minWatchTimeout = (60 * 24 * 365) * time.Minute //should run for atleast a year without hanging up
+	timeoutSeconds  = int64(minWatchTimeout.Seconds() * (rand.Float64() + 1.0))
 )
 
 func EventBuffer(context context.Context, client k.Interface,

@@ -5,6 +5,8 @@ import (
 	"K8SArdoqBridge/app/tests/helper"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var _ = Describe("Nodes", Ordered, func() {
@@ -26,13 +28,14 @@ var _ = Describe("Nodes", Ordered, func() {
 				Storage: "56453061Ki",
 				Pods:    110,
 			},
-			ContainerRuntime: "docker://20.10.11",
-			KernelVersion:    "5.10.76-linuxkit",
-			KubeletVersion:   "v1.22.4",
-			KubeProxyVersion: "v1.22.4",
-			OperatingSystem:  "linux",
-			OSImage:          "Docker Desktop",
-			Provider:         "docker-desktop",
+			ContainerRuntime:  "docker://20.10.11",
+			KernelVersion:     "5.10.76-linuxkit",
+			KubeletVersion:    "v1.22.4",
+			KubeProxyVersion:  "v1.22.4",
+			OperatingSystem:   "linux",
+			OSImage:           "Docker Desktop",
+			Provider:          "docker-desktop",
+			CreationTimestamp: v1.Now().Format(time.RFC3339),
 		}
 
 	})

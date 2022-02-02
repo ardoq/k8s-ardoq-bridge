@@ -12,6 +12,9 @@ metadata:
   namespace: labelled-ns
   labels:
     sync-to-ardoq: "disabled"
+    ardoq/stack: "nginx"
+    ardoq/team: DevOps
+    ardoq/project: "TestProject"
 spec:
   replicas: 2
   selector:

@@ -10,6 +10,10 @@ kind: StatefulSet
 metadata:
   name: labelled-ns-web-sts
   namespace: labelled-ns
+  labels:
+    ardoq/stack: "nginx"
+    ardoq/team: DevOps
+    ardoq/project: "TestProject"
 spec:
   selector:
     matchLabels:

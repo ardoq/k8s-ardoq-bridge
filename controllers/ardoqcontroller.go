@@ -59,9 +59,12 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	case "Deployment", "StatefulSet":
 		component.Parent = GenericLookup("Namespace", resource.Namespace)
 		component.Fields = map[string]interface{}{
-			"tags":           resource.ResourceType,
-			"resource_image": resource.Image,
-			"replicas":       resource.Replicas,
+			"resource_image":              resource.Image,
+			"resource_replicas":           resource.Replicas,
+			"resource_creation_timestamp": resource.CreationTimestamp,
+			"resource_stack":              resource.Stack,
+			"resource_team":               resource.Team,
+			"resource_project":            resource.Project,
 		}
 		break
 	case "Node":
@@ -83,6 +86,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			"node_allocatable_storage": node.Allocatable.Storage,
 			"node_allocatable_pods":    node.Allocatable.Pods,
 			"node_provider":            node.Provider,
+			"node_creation_timestamp":  node.CreationTimestamp,
 		}
 		break
 	}
