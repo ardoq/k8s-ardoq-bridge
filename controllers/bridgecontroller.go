@@ -10,6 +10,7 @@ import (
 	"k8s.io/klog/v2"
 	"reflect"
 	"strings"
+	"time"
 )
 
 var (
@@ -38,11 +39,15 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			return
 		}
 		resource = Resource{
-			Name:         res.Name,
-			ResourceType: "Deployment",
-			Namespace:    res.Namespace,
-			Replicas:     res.Status.Replicas,
-			Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
+			Name:              res.Name,
+			ResourceType:      "Deployment",
+			Namespace:         res.Namespace,
+			Replicas:          res.Status.Replicas,
+			Image:             GetContainerImages(res.Spec.Template.Spec.Containers),
+			CreationTimestamp: res.CreationTimestamp.Format(time.RFC3339),
+			Stack:             res.Labels["ardoq/stack"],
+			Team:              res.Labels["ardoq/team"],
+			Project:           res.Labels["ardoq/project"],
 		}
 	} else if strings.HasSuffix(resourceType, "StatefulSet") {
 		res := genericResource.(v1.StatefulSet)
@@ -51,11 +56,15 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			return
 		}
 		resource = Resource{
-			Name:         res.Name,
-			ResourceType: "StatefulSet",
-			Namespace:    res.Namespace,
-			Replicas:     res.Status.Replicas,
-			Image:        GetContainerImages(res.Spec.Template.Spec.Containers),
+			Name:              res.Name,
+			ResourceType:      "StatefulSet",
+			Namespace:         res.Namespace,
+			Replicas:          res.Status.Replicas,
+			Image:             GetContainerImages(res.Spec.Template.Spec.Containers),
+			CreationTimestamp: res.CreationTimestamp.Format(time.RFC3339),
+			Stack:             res.Labels["ardoq/stack"],
+			Team:              res.Labels["ardoq/team"],
+			Project:           res.Labels["ardoq/project"],
 		}
 	} else {
 		klog.Errorf("Invalid type: %s", resourceType)
@@ -118,13 +127,14 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 			Storage: res.Status.Allocatable.StorageEphemeral().String(),
 			Pods:    res.Status.Allocatable.Pods().Value(),
 		},
-		ContainerRuntime: res.Status.NodeInfo.ContainerRuntimeVersion,
-		KernelVersion:    res.Status.NodeInfo.KernelVersion,
-		KubeletVersion:   res.Status.NodeInfo.KubeletVersion,
-		KubeProxyVersion: res.Status.NodeInfo.KubeProxyVersion,
-		OperatingSystem:  res.Status.NodeInfo.OperatingSystem,
-		OSImage:          res.Status.NodeInfo.OSImage,
-		Provider:         res.Spec.ProviderID,
+		ContainerRuntime:  res.Status.NodeInfo.ContainerRuntimeVersion,
+		KernelVersion:     res.Status.NodeInfo.KernelVersion,
+		KubeletVersion:    res.Status.NodeInfo.KubeletVersion,
+		KubeProxyVersion:  res.Status.NodeInfo.KubeProxyVersion,
+		OperatingSystem:   res.Status.NodeInfo.OperatingSystem,
+		OSImage:           res.Status.NodeInfo.OSImage,
+		Provider:          res.Spec.ProviderID,
+		CreationTimestamp: res.CreationTimestamp.Format(time.RFC3339),
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
