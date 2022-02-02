@@ -77,6 +77,6 @@ jobs:
           add: 'helm/k8s-ardoq-bridge-*'
       - name: Index helm chart
         run: |
-          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://raw.githubusercontent.com/${{ env.GH_OWNER }}/${{ env.HELM_REP }}/main/ -i helm/index.yaml --pr
+          ./cr index -o ${{ env.GH_OWNER }} -r ${{ env.HELM_REP }} -c https://raw.githubusercontent.com/${{ env.GH_OWNER }}/${{ env.HELM_REP }}/main/ -i helm/index.yaml --push
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
