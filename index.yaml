@@ -3,12 +3,12 @@ entries:
   k8s-ardoq-bridge:
   - apiVersion: v2
     appVersion: v0.0.13
-    created: "2022-01-25T17:18:49.531956682Z"
+    created: "2022-02-02T15:38:57.192157+01:00"
     description: A Helm chart for Kubernetes
-    digest: 0b70ae4aef6382ea4a6f23336f40c69c79fbf46c443cc8de3a2d28242bfcc80e
+    digest: 8f4da3b4f31aab46eb6136c35725fa370610e0946b93ffaa7a8d544c925e8009
     name: k8s-ardoq-bridge
     type: application
     urls:
-    - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.1/k8s-ardoq-bridge-0.1.1.tgz
-    version: 0.1.1
-generated: "2022-01-25T17:18:49.531963183Z"
+    - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.0/k8s-ardoq-bridge-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-02-02T15:38:57.192188+01:00"
