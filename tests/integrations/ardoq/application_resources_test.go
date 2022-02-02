@@ -5,6 +5,8 @@ import (
 	"K8SArdoqBridge/app/tests/helper"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var _ = Describe("Deployments", Ordered, func() {
@@ -14,11 +16,15 @@ var _ = Describe("Deployments", Ordered, func() {
 
 	BeforeEach(func() {
 		deploy = &controllers.Resource{
-			Name:         resourceName,
-			ResourceType: "Deployment",
-			Namespace:    namespace,
-			Replicas:     helper.RandomInt(1, 5),
-			Image:        "nginx-slim:0.8",
+			Name:              resourceName,
+			ResourceType:      "Deployment",
+			Namespace:         namespace,
+			Replicas:          helper.RandomInt(1, 5),
+			Image:             "nginx-slim:0.8",
+			CreationTimestamp: v1.Now().Format(time.RFC3339),
+			Stack:             "nginx",
+			Team:              "DevOps",
+			Project:           "Test",
 		}
 		Expect(deploy.IsApplicationResourceValid()).To(BeTrue())
 	})
@@ -88,11 +94,15 @@ var _ = Describe("StatefulSets", Ordered, func() {
 
 	BeforeEach(func() {
 		sts = &controllers.Resource{
-			Name:         resourceName,
-			ResourceType: "StatefulSet",
-			Namespace:    namespace,
-			Replicas:     helper.RandomInt(1, 5),
-			Image:        "postgresql:14.1",
+			Name:              resourceName,
+			ResourceType:      "StatefulSet",
+			Namespace:         namespace,
+			Replicas:          helper.RandomInt(1, 5),
+			Image:             "postgresql:14.1",
+			CreationTimestamp: v1.Now().Format(time.RFC3339),
+			Stack:             "nginx",
+			Team:              "DevOps",
+			Project:           "Test",
 		}
 		Expect(sts.IsApplicationResourceValid()).To(BeTrue())
 	})
