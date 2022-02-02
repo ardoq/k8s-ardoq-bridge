@@ -1,24 +1,34 @@
 apiVersion: v1
 entries:
   k8s-ardoq-bridge:
-    - apiVersion: v2
-      appVersion: v0.0.12
-      created: "2022-01-25T14:29:58.915028334Z"
-      description: A Helm chart for Kubernetes
-      digest: 2c00fdf8ed76f8c3fc6bc30e0c95acdb035141c302390aa776056e4378af4da0
-      name: k8s-ardoq-bridge
-      type: application
-      urls:
-        - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.0/k8s-ardoq-bridge-0.1.0.tgz
-      version: 0.1.0
-    - apiVersion: v2
-      appVersion: v0.0.13
-      created: "2022-01-25T17:18:49.531956682Z"
-      description: A Helm chart for Kubernetes
-      digest: 0b70ae4aef6382ea4a6f23336f40c69c79fbf46c443cc8de3a2d28242bfcc80e
-      name: k8s-ardoq-bridge
-      type: application
-      urls:
-        - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.1/k8s-ardoq-bridge-0.1.1.tgz
-      version: 0.1.1
-generated: "2022-01-25T17:18:49.531963183Z"
+  - apiVersion: v2
+    appVersion: v0.0.14
+    created: "2022-02-02T16:58:05.893495858Z"
+    description: A Helm chart for Kubernetes
+    digest: 516460c73f1859fbd737cb26d3646ae228fee8b9925751a77249a13d644a65ce
+    name: k8s-ardoq-bridge
+    type: application
+    urls:
+    - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.2/k8s-ardoq-bridge-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: v0.0.13
+    created: "2022-02-02T16:58:05.608049418Z"
+    description: A Helm chart for Kubernetes
+    digest: a6bbe104a1a08eccfa28aaccbe3f498b43f793fa15e1d20c2ff152cb43adeb5a
+    name: k8s-ardoq-bridge
+    type: application
+    urls:
+    - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.1/k8s-ardoq-bridge-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: v0.0.12
+    created: "2022-02-02T16:58:05.38688312Z"
+    description: A Helm chart for Kubernetes
+    digest: a69192e5572fc6834dc65c9e5537b60d76e636d8a80a28fa193d400e12941c67
+    name: k8s-ardoq-bridge
+    type: application
+    urls:
+    - https://github.com/ardoq/k8s-ardoq-bridge/releases/download/k8s-ardoq-bridge-0.1.0/k8s-ardoq-bridge-0.1.0.tgz
+    version: 0.1.0
+generated: "2022-02-02T16:58:05.893519558Z"
