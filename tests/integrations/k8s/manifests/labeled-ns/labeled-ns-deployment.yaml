@@ -10,6 +10,10 @@ kind: Deployment
 metadata:
   name: labelled-ns-web-deploy
   namespace: labelled-ns
+  labels:
+    ardoq/stack: "nginx"
+    ardoq/team: DevOps
+    ardoq/project: "TestProject"
 spec:
   replicas: 2
   selector:

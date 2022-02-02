@@ -4,6 +4,9 @@ metadata:
   name: web-deploy
   labels:
     sync-to-ardoq: "enabled"
+    ardoq/stack: "nginx"
+    ardoq/team: DevOps
+    ardoq/project: "TestProject"
 spec:
   replicas: 2
   selector:
