@@ -118,6 +118,13 @@ var _ = Describe("ApplicationResource", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(excludedSession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
 		})
+		AfterAll(func() {
+			klog.Info("Cleaning up resources in a labelled namespace...")
+			cmd := exec.Command("kubectl", "delete", "--wait=true", "-Rf", "manifests/labeled-ns/")
+			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session.Out, 5).Should(gbytes.Say(".*deleted.*"))
+		})
 		It("Can fetch StatefulSets in a labelled namespace", func() {
 			Eventually(func() float64 {
 				data, err := controllers.ApplicationResourceSearch("labelled-ns", "StatefulSet", "labelled-ns-web-sts")
