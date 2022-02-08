@@ -13,12 +13,11 @@ import (
 	k "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	"sync"
-	"time"
 )
 
 var (
-	minWatchTimeout = (60 * 24 * 28) * time.Minute //should run for atleast 4 weeks without hanging up
-	timeoutSeconds  = int64(minWatchTimeout.Seconds())
+	//minWatchTimeout = (60 * 24 * 28) * time.Minute //should run for atleast 4 weeks without hanging up
+	timeoutSeconds = int64(0)
 )
 
 func EventBuffer(context context.Context, client k.Interface,
@@ -32,7 +31,6 @@ func EventBuffer(context context.Context, client k.Interface,
 		funcObj := o
 		w, err := funcObj.Watch(context, metav1.ListOptions{
 			TimeoutSeconds:      &timeoutSeconds,
-			Watch:               true,
 			AllowWatchBookmarks: true})
 		defer w.Stop()
 		if err != nil {
@@ -43,7 +41,6 @@ func EventBuffer(context context.Context, client k.Interface,
 			case err == io.ErrUnexpectedEOF:
 				klog.Infof("closed with unexpected EOF")
 			}
-			klog.Error(err)
 		}
 		watchers = append(watchers, w.ResultChan())
 	}
@@ -51,8 +48,6 @@ func EventBuffer(context context.Context, client k.Interface,
 	var wg sync.WaitGroup
 	wg.Add(len(watchers))
 	for x, o := range watchers {
-		x := x
-		o := o
 		go func() {
 			err := func(t int, c <-chan watch.Event) error {
 				defer wg.Done()
@@ -61,19 +56,19 @@ func EventBuffer(context context.Context, client k.Interface,
 					select {
 					case update, hasUpdate := <-c:
 						if hasUpdate {
-
 							err := registry.OnEvent(subscription.Message{
 								Event:  update,
 								Client: client,
 							})
 							if err != nil {
+								klog.Error(err)
 								return err
 							}
 							metrics.TotalEventOps.Inc()
 						}
 						if !hasUpdate {
 							// the channel got closed, so we need to restart
-							klog.Error("Kubernetes hung up on us, restarting event watcher")
+							klog.Info("Kubernetes hung up on us, restarting event watcher")
 						}
 						//case <-time.After(30 * time.Minute):
 						//	// deal with the issue where we get no events
@@ -81,6 +76,7 @@ func EventBuffer(context context.Context, client k.Interface,
 					}
 					counter++
 				}
+
 			}(x, o)
 			if err != nil {
 				klog.Error(err)
