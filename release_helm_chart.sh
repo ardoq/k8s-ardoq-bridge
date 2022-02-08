@@ -89,21 +89,21 @@ function cleanup() {
 }
 
 echo "Linting"
-helm lint $HELM_DIR
+helm lint $HELM_DIR || exit 1
 
 echo "setting up chart releaser"
-setup_chart_releaser
+setup_chart_releaser || exit 1
 
 echo "package helm chart"
-./cr package $HELM_DIR -p helm
+./cr package $HELM_DIR -p helm || exit 1
 
 echo "Uplocad helm chart"
-./cr upload -o $GH_OWNER -r $HELM_REP --skip-existing -p helm
+./cr upload -o $GH_OWNER -r $HELM_REP --skip-existing -p helm || exit 1
 #git add helm/k8s-ardoq-bridge-*
 #git commit -m '[automated commit] uploaded archived helm chart'
 
 echo "Index Helm chart"
-./cr index -o $GH_OWNER -r $HELM_REP -c https://raw.githubusercontent.com/$GH_OWNER/$HELM_REP/main/ -i helm/index.yaml -p helm --push
+./cr index -o $GH_OWNER -r $HELM_REP -c https://raw.githubusercontent.com/$GH_OWNER/$HELM_REP/main/ -i helm/index.yaml -p helm --push || exit 1
 #git add helm/index.yaml
 #git commit -m '[automated commit] uploaded index file'
 
@@ -111,4 +111,4 @@ echo "Push all staged changes"
 #git push
 
 echo "cleanup"
-cleanup
+cleanup || exit 1
