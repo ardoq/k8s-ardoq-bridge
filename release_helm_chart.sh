@@ -119,6 +119,7 @@ git add helm/k8s-ardoq-bridge-*
 git commit -m '[automated commit] uploaded archived helm chart'
 
 echo "Index Helm chart"
+git fetch origin gh-pages
 ./cr index -o $GH_OWNER -r $HELM_REP -c https://raw.githubusercontent.com/$GH_OWNER/$HELM_REP/main/ -i helm/index.yaml -p helm --push || exit 1
 git add helm/index.yaml
 git commit -m '[automated commit] uploaded index file'
