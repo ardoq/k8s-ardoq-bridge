@@ -82,11 +82,10 @@ echo "Releasing Helm chart"
 
 function setup_chart_releaser() {
     curl -OL https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
-    echo "baed2315a9bb799efb71d512c5198a2a3b8dcd139d7f22f878777cffcd649a37  chart-releaser_1.3.0_linux_amd64.tar.gz" | sha256sum -c -
     tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
 }
 function cleanup() {
-    rm cr
+    rm cr chart-releaser_1.3.0_linux_amd64.tar.gz
 }
 
 echo "Linting"
