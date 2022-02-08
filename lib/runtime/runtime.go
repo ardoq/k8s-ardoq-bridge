@@ -12,14 +12,13 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	k "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
-	"math/rand"
 	"sync"
 	"time"
 )
 
 var (
-	minWatchTimeout = (60 * 24 * 365) * time.Minute //should run for atleast a year without hanging up
-	timeoutSeconds  = int64(minWatchTimeout.Seconds() * (rand.Float64() + 1.0))
+	minWatchTimeout = (60 * 24 * 28) * time.Minute //should run for atleast 4 weeks without hanging up
+	timeoutSeconds  = int64(minWatchTimeout.Seconds())
 )
 
 func EventBuffer(context context.Context, client k.Interface,
@@ -33,6 +32,7 @@ func EventBuffer(context context.Context, client k.Interface,
 		funcObj := o
 		w, err := funcObj.Watch(context, metav1.ListOptions{
 			TimeoutSeconds:      &timeoutSeconds,
+			Watch:               true,
 			AllowWatchBookmarks: true})
 		defer w.Stop()
 		if err != nil {
@@ -73,7 +73,7 @@ func EventBuffer(context context.Context, client k.Interface,
 						}
 						if !hasUpdate {
 							// the channel got closed, so we need to restart
-							klog.Fatal("Kubernetes hung up on us, restarting event watcher")
+							klog.Error("Kubernetes hung up on us, restarting event watcher")
 						}
 						//case <-time.After(30 * time.Minute):
 						//	// deal with the issue where we get no events
