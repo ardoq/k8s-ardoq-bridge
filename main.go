@@ -147,12 +147,6 @@ func main() {
 		RetryPeriod:     5 * time.Second,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
-				// we're notified when we start - this is where you would
-				// usually put your code
-				/*
-					This is a default template file.
-					Add subscriptions and watchers to make it your own.
-				*/
 				err = runtime.EventBuffer(ctx, kubeClient,
 					&subscription.Registry{
 						Subscriptions: []subscription.ISubscription{
