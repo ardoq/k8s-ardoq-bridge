@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	minWatchTimeout = (60 * 24 * 28) * time.Minute //should run for atleast 4 weeks without hanging up
+	minWatchTimeout = (60 * 24 * 365) * time.Minute //should run for atleast 1 year without hanging up
 	timeoutSeconds  = int64(minWatchTimeout.Seconds())
 )
 
@@ -61,12 +61,12 @@ func EventBuffer(context context.Context, client k.Interface,
 					select {
 					case update, hasUpdate := <-c:
 						if hasUpdate {
-
 							err := registry.OnEvent(subscription.Message{
 								Event:  update,
 								Client: client,
 							})
 							if err != nil {
+								klog.Error(err)
 								return err
 							}
 							metrics.TotalEventOps.Inc()
