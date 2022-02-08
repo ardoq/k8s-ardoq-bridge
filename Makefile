@@ -1,3 +1,4 @@
+VERSION=`cat VERSION`
 export KUBECONFIG ?= ${HOME}/.kube/config
 
 # Active module mode, as we use Go modules to manage dependencies
@@ -30,3 +31,18 @@ unit-tests: $(SOURCES) get-ginkgo
 .PHONY: all-tests
 ## Runs all tests
 all-tests: $(SOURCES) unit-tests ardoq-integration-tests k8s-integration-tests
+
+up:
+	kind create cluster --name=kind
+
+down:
+	kind delete cluster --name=kind
+
+docker-build:
+	docker build -t ardoq/k8s-ardoq-bridge:devel .
+
+docker-load:
+	kind load docker-image ardoq/k8s-ardoq-bridge:devel --name=kind
+
+run:
+	go run main.go --kubeconfig=$(HOME)/.kube/config
