@@ -113,7 +113,7 @@ setup_chart_releaser || exit 1
 echo "package helm chart"
 ./cr package $HELM_DIR -p helm || exit 1
 
-echo "Uplocad helm chart"
+echo "Upload helm chart"
 ./cr upload -o $GH_OWNER -r $HELM_REP --skip-existing -p helm || exit 1
 git add helm/k8s-ardoq-bridge-*
 git commit -m '[automated commit] uploaded archived helm chart'
