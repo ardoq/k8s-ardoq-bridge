@@ -10,6 +10,12 @@ HELM_DIR=helm/chart
 GH_OWNER=ardoq
 HELM_REP=k8s-ardoq-bridge
 
+if [[ -z ${CR_TOKEN} ]]
+then
+  echo "CR_TOKEN Not set in environment variables"
+  exit 1
+fi
+
 RE='[^0-9]*\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\)\([0-9A-Za-z-]*\)'
 
 step="$1"
@@ -81,11 +87,21 @@ echo "Upgraded helm chart version to $new_version appVersion to $latest_tagged_v
 echo "Releasing Helm chart"
 
 function setup_chart_releaser() {
-    curl -OL https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
-    tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
+  arch_name=$(uname -m)
+  kernel=$(uname | tr '[:upper:]' '[:lower:]')
+  case "$arch_name" in
+      amd64)  arch_name="amd64"                    ;;
+      x86_64) arch_name="amd64"                   ;;
+      arm64) arch_name="arm64"                  ;;
+  * ) echo    "Your Architecture '$arch_name' -> ITS NOT SUPPORTED."   ;;
+  esac
+  curl -OL https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_"${kernel}"_${arch_name}.tar.gz
+  tar xzvf chart-releaser_1.3.0_"${kernel}"_${arch_name}.tar.gz cr
+  chmod +x cr
+  rm chart-releaser_1.3.0_"${kernel}"_${arch_name}.tar.gz
 }
 function cleanup() {
-    rm cr chart-releaser_1.3.0_linux_amd64.tar.gz
+  rm cr
 }
 
 echo "Linting"
@@ -99,16 +115,16 @@ echo "package helm chart"
 
 echo "Uplocad helm chart"
 ./cr upload -o $GH_OWNER -r $HELM_REP --skip-existing -p helm || exit 1
-#git add helm/k8s-ardoq-bridge-*
-#git commit -m '[automated commit] uploaded archived helm chart'
+git add helm/k8s-ardoq-bridge-*
+git commit -m '[automated commit] uploaded archived helm chart'
 
 echo "Index Helm chart"
 ./cr index -o $GH_OWNER -r $HELM_REP -c https://raw.githubusercontent.com/$GH_OWNER/$HELM_REP/main/ -i helm/index.yaml -p helm --push || exit 1
-#git add helm/index.yaml
-#git commit -m '[automated commit] uploaded index file'
+git add helm/index.yaml
+git commit -m '[automated commit] uploaded index file'
 
 echo "Push all staged changes"
-#git push
+git push
 
 echo "cleanup"
 cleanup || exit 1
