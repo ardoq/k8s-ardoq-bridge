@@ -46,7 +46,7 @@ var _ = BeforeSuite(func() {
 	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
 	Eventually(session.Err, 5).Should(gbytes.Say(`.*Initialising cluster in Ardoq`))
 	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
-	Eventually(session.Err, 30).Should(gbytes.Say(`.*successfully acquired lease.*`))
+	Eventually(session.Err, 20).Should(gbytes.Say(`.*successfully acquired lease.*`))
 	controllers.ApplyDelay(10)
 	klog.Info("Initializing Complete")
 })
