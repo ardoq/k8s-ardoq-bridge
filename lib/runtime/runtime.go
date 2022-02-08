@@ -61,6 +61,7 @@ func EventBuffer(context context.Context, client k.Interface,
 					select {
 					case update, hasUpdate := <-c:
 						if hasUpdate {
+
 							err := registry.OnEvent(subscription.Message{
 								Event:  update,
 								Client: client,
