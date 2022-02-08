@@ -73,7 +73,7 @@ sed -i "" "s/version: .*/version: $new_version/g" $HELM_DIR/Chart.yaml
 sed -i "" "s/appVersion: .*/appVersion: $latest_tagged_version/g" $HELM_DIR/Chart.yaml
 
 git add CHART_VERSION $HELM_DIR
-git commit -am "Upgraded helm chart version to $new_version appVersion to $latest_tagged_version"
+git commit -m "Upgraded helm chart version to $new_version appVersion to $latest_tagged_version"
 
 
 echo "Upgraded helm chart version to $new_version appVersion to $latest_tagged_version ready to be pushed"
@@ -81,7 +81,7 @@ echo "Upgraded helm chart version to $new_version appVersion to $latest_tagged_v
 echo "Releasing Helm chart"
 
 function setup_chart_releaser() {
-    wget https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
+    curl -OL https://github.com/helm/chart-releaser/releases/download/v1.3.0/chart-releaser_1.3.0_linux_amd64.tar.gz
     echo "baed2315a9bb799efb71d512c5198a2a3b8dcd139d7f22f878777cffcd649a37  chart-releaser_1.3.0_linux_amd64.tar.gz" | sha256sum -c -
     tar xzvf chart-releaser_1.3.0_linux_amd64.tar.gz cr
 }
@@ -100,15 +100,16 @@ echo "package helm chart"
 
 echo "Uplocad helm chart"
 ./cr upload -o $GH_OWNER -r $HELM_REP --skip-existing -p helm
-git add helm/k8s-ardoq-bridge-*
-git commit -m '[automated commit] uploaded archived helm chart'
-git push
+#git add helm/k8s-ardoq-bridge-*
+#git commit -m '[automated commit] uploaded archived helm chart'
 
 echo "Index Helm chart"
 ./cr index -o $GH_OWNER -r $HELM_REP -c https://raw.githubusercontent.com/$GH_OWNER/$HELM_REP/main/ -i helm/index.yaml -p helm --push
-git add helm/index.yaml
-git commit -m '[automated commit] uploaded index file'
-git push
+#git add helm/index.yaml
+#git commit -m '[automated commit] uploaded index file'
+
+echo "Push all staged changes"
+#git push
 
 echo "cleanup"
 cleanup
