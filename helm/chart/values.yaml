@@ -9,6 +9,7 @@ rbac:
 image:
   repository: ardoq/k8s-ardoq-bridge
   pullPolicy: IfNotPresent
+  tag: "{{ .Chart.AppVersion }}"
 
 imagePullSecrets: []
 nameOverride: ""
