@@ -32,4 +32,6 @@ type Node struct {
 	OSImage           string
 	Provider          string
 	CreationTimestamp string
+	Region            string
+	Zone              string
 }

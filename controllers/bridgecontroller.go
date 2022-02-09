@@ -108,6 +108,8 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		OSImage:           res.Status.NodeInfo.OSImage,
 		Provider:          res.Spec.ProviderID,
 		CreationTimestamp: res.CreationTimestamp.Format(time.RFC3339),
+		Region:            res.Labels["failure-domain.beta.kubernetes.io/region"],
+		Zone:              res.Labels["failure-domain.beta.kubernetes.io/zone"],
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:

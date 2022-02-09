@@ -87,6 +87,8 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			"node_allocatable_pods":    node.Allocatable.Pods,
 			"node_provider":            node.Provider,
 			"node_creation_timestamp":  node.CreationTimestamp,
+			"node_zone":                node.Zone,
+			"node_region":              node.Region,
 		}
 		break
 	}
