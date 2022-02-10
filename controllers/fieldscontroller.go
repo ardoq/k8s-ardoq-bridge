@@ -17,7 +17,6 @@ func CreateFields(ctx context.Context, id string, fields []FieldRequest) error {
 			BodyProvider(ardoqBodyProvider{request: v}).
 			Receive(res, errResponse)
 		if errResponse.Code == 409 {
-			klog.Error(errResponse)
 			continue
 		} else if err != nil {
 			klog.Error(err)
