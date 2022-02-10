@@ -22,28 +22,26 @@ THE SOFTWARE.
 package main
 
 import (
+	"K8SArdoqBridge/app/controllers"
+	"K8SArdoqBridge/app/lib/runtime"
+	"K8SArdoqBridge/app/lib/subscription"
+	"K8SArdoqBridge/app/lib/watcher"
+	"K8SArdoqBridge/app/subscriptions"
 	"context"
 	"flag"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"log"
+	"k8s.io/klog/v2"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"K8SArdoqBridge/app/controllers"
-	"K8SArdoqBridge/app/lib/runtime"
-	"K8SArdoqBridge/app/lib/subscription"
-	"K8SArdoqBridge/app/lib/watcher"
-	"K8SArdoqBridge/app/subscriptions"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog/v2"
 )
 
 var (
@@ -73,7 +71,7 @@ func main() {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 
-		log.Fatal(http.ListenAndServe(*addr, nil))
+		klog.Fatal(http.ListenAndServe(*addr, nil))
 	}()
 	go func() {
 		klog.Error(http.ListenAndServe(":7777", http.DefaultServeMux))
@@ -109,14 +107,27 @@ func main() {
 			cancel()
 		}
 	}()
+	//Initialise the Model in Ardoq
+	err = controllers.BootstrapModel()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	klog.Info("Initialized the Model")
+	//Initialise the Custom Fields
+	err = controllers.BootstrapFields()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	klog.Info("Initialised Custom Fields")
 
 	//initialise cluster
 	if os.Getenv("ARDOQ_CLUSTER") == "" {
 		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
 	}
-	klog.Info("Initialising cluster in Ardoq")
 	controllers.GenericUpsert("Cluster", os.Getenv("ARDOQ_CLUSTER"))
-
+	klog.Info("Initialised cluster in Ardoq")
 	//start Resource Consumers
 	go controllers.ResourceUpsertConsumer()
 	go controllers.ResourceDeleteConsumer()
