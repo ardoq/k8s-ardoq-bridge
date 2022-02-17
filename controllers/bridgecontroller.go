@@ -12,9 +12,13 @@ import (
 	"time"
 )
 
+type resourceQueue struct {
+	action string
+	data   Resource
+}
+
 var (
-	upsertQueue = make(chan Resource)
-	deleteQueue = make(chan Resource)
+	queue = make(chan resourceQueue)
 )
 
 type BridgeController struct {
@@ -71,10 +75,18 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		upsertQueue <- resource
+		toQueue := resourceQueue{
+			action: "UPSERT",
+			data:   resource,
+		}
+		queue <- toQueue
 		break
 	case watch.Deleted:
-		deleteQueue <- resource
+		toQueue := resourceQueue{
+			action: "DELETE",
+			data:   resource,
+		}
+		queue <- toQueue
 		break
 	}
 }
@@ -124,19 +136,23 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	}
 }
 
-func ResourceUpsertConsumer() {
-	for res := range upsertQueue {
-		GenericUpsert(res.ResourceType, res)
-	}
-}
-func ResourceDeleteConsumer() {
-	for res := range deleteQueue {
-		err := GenericDelete(res.ResourceType, res)
-		if err != nil {
-			return
+func ResourceConsumer() {
+	for q := range queue {
+		switch q.action {
+		case "UPSERT":
+			GenericUpsert(q.data.ResourceType, q.data)
+			break
+		case "DELETE":
+			err := GenericDelete(q.data.ResourceType, q.data)
+			if err != nil {
+				return
+			}
+			break
 		}
+
 	}
 }
+
 func (b *BridgeController) ControlLoop(cancelContext context.Context) {
 
 	for {
