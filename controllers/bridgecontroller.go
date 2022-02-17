@@ -16,9 +16,14 @@ type resourceQueue struct {
 	action string
 	data   Resource
 }
+type nodeQueue struct {
+	action string
+	data   Node
+}
 
 var (
-	queue = make(chan resourceQueue)
+	resourceQueues = make(chan resourceQueue)
+	nodeQueues     = make(chan nodeQueue)
 )
 
 type BridgeController struct {
@@ -79,14 +84,14 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			action: "UPSERT",
 			data:   resource,
 		}
-		queue <- toQueue
+		resourceQueues <- toQueue
 		break
 	case watch.Deleted:
 		toQueue := resourceQueue{
 			action: "DELETE",
 			data:   resource,
 		}
-		queue <- toQueue
+		resourceQueues <- toQueue
 		break
 	}
 }
@@ -125,25 +130,46 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		GenericUpsert("Node", node)
+		toQueue := nodeQueue{
+			action: "UPSERT",
+			data:   node,
+		}
+		nodeQueues <- toQueue
 		break
 	case watch.Deleted:
-		err := GenericDelete("Node", node)
-		if err != nil {
-			return
+		toQueue := nodeQueue{
+			action: "DELETE",
+			data:   node,
 		}
+		nodeQueues <- toQueue
 		break
 	}
 }
 
 func ResourceConsumer() {
-	for q := range queue {
+	for q := range resourceQueues {
 		switch q.action {
 		case "UPSERT":
 			GenericUpsert(q.data.ResourceType, q.data)
 			break
 		case "DELETE":
 			err := GenericDelete(q.data.ResourceType, q.data)
+			if err != nil {
+				return
+			}
+			break
+		}
+
+	}
+}
+func NodeConsumer() {
+	for q := range nodeQueues {
+		switch q.action {
+		case "UPSERT":
+			GenericUpsert("Node", q.data)
+			break
+		case "DELETE":
+			err := GenericDelete("Node", q.data)
 			if err != nil {
 				return
 			}
