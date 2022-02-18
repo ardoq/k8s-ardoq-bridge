@@ -44,7 +44,7 @@ var _ = BeforeSuite(func() {
 	session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
-	Eventually(session.Err, 5).Should(gbytes.Say(`.*Initialising cluster in Ardoq`))
+	Eventually(session.Err, 5).Should(gbytes.Say(`.*Initialised cluster in Ardoq`))
 	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
 	Eventually(session.Err, 20).Should(gbytes.Say(`.*successfully acquired lease.*`))
 	controllers.ApplyDelay(10)

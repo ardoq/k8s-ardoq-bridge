@@ -86,12 +86,6 @@ var _ = Describe("Nodes", Ordered, func() {
 	Context("Node Ardoq Link tests", Ordered, func() {
 		It("Can create Node", func() {
 			Expect(controllers.GenericUpsert("Node", *node)).ShouldNot(BeNil())
-			Eventually(func() float64 {
-				data, err := controllers.AdvancedSearch("component", "Node", node.Name)
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
 		})
 		It("Can Update Node", func() {
 			node.KernelVersion = "5.10.76-linuxkit-2"
