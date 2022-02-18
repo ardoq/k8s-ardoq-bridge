@@ -1,18 +1,14 @@
 package controllers
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	goCache "github.com/patrickmn/go-cache"
-	"io"
-	"io/ioutil"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
-	"net/http"
 	"os"
-	"strings"
+	"strconv"
 	"time"
 )
 
@@ -29,28 +25,30 @@ func ardRestClient() *ardoq.APIClient {
 	}
 	return a
 }
-func StripBrackets(in string) string {
-	replacer := strings.NewReplacer("[\"", "", "\"]", "")
-	return replacer.Replace(in)
-}
-func GenericLookup(resourceType string, name string, deletion ...bool) string {
-	if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
+func LookupCluster(name string) string {
+	if cachedResource, found := Cache.Get("ResourceType/Cluster/" + name); found {
 		return cachedResource.(string)
 	}
-	data, err := AdvancedSearch("component", resourceType, name)
-	if err != nil {
-		klog.Error(err)
-		os.Exit(1)
+	return GenericUpsert("Cluster", name)
+}
+func LookupNamespace(name string) string {
+	if cachedResource, found := Cache.Get("ResourceType/Namespace/" + name); found {
+		return cachedResource.(string)
 	}
-	var componentId string
-	if data.Path("total").Data().(float64) == 0 {
-		if !(len(deletion) > 0 && deletion[0]) {
-			componentId = GenericUpsert(resourceType, name)
-		}
-		return componentId
+	return ""
+}
+
+func LookupResource(namespace string, resourceType string, resourceName string) string {
+	if cachedResource, found := Cache.Get("ResourceType/" + namespace + "/" + resourceType + "/" + resourceName); found {
+		return cachedResource.(Resource).ID
 	}
-	componentId = StripBrackets(data.Search("results", "doc", "_id").String())
-	return componentId
+	return ""
+}
+func LookupNode(name string) string {
+	if cachedResource, found := Cache.Get("ResourceType/Node/" + name); found {
+		return cachedResource.(Node).ID
+	}
+	return ""
 }
 
 func lookUpTypeId(name string) string {
@@ -77,173 +75,6 @@ func lookUpTypeId(name string) string {
 
 }
 
-func AdvancedSearch(searchType string, resourceType string, name string) (*gabs.Container, error) {
-	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
-	method := "POST"
-	searchQuery := []byte(fmt.Sprintf(`{
-			"condition": "AND",
-			"rules": [
-				{
-					"id": "type",
-					"field": "type",
-					"type": "string",
-					"input": "select",
-					"operator": "equal",
-					"value": "%s"
-				},
-				{
-					"condition": "AND",
-					"rules": [
-						{
-							"id": "rootWorkspace",
-							"field": "rootWorkspace",
-							"type": "string",
-							"input": "text",
-							"operator": "equal",
-							"value": "%s"
-						},
-						{
-							"id": "typeName",
-							"field": "typeName",
-							"type": "string",
-							"input": "text",
-							"operator": "contains",
-							"value": "%s"
-						},
-						{
-							"id": "name",
-							"field": "name",
-							"type": "string",
-							"input": "text",
-							"operator": "contains",
-							"value": "%s"
-						}
-					]
-				}
-			]
-		}`, searchType, workspaceId, resourceType, name))
-	payload := bytes.NewBuffer(searchQuery)
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
-
-	if err != nil {
-		klog.Fatal(err)
-	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := client.Do(req)
-	if err != nil {
-		klog.Fatal(err)
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			klog.Fatal(err)
-		}
-	}(res.Body)
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		klog.Fatal(err)
-	}
-	parsed, err := gabs.ParseJSON(body)
-	if err != nil {
-		klog.Fatal(err)
-	}
-	return parsed, nil
-}
-func ApplicationResourceSearch(namespace string, resourceType string, resourceName string, deletion ...bool) (*gabs.Container, error) {
-	url := fmt.Sprintf("%sadvanced-search?size=1&from=0", baseUri)
-	method := "POST"
-	parentId := ""
-	if len(deletion) > 0 && deletion[0] {
-		parentId = GenericLookup("Namespace", namespace, deletion[0])
-	} else {
-		parentId = GenericLookup("Namespace", namespace)
-	}
-
-	searchQuery := []byte(fmt.Sprintf(`{
-			"condition": "AND",
-			"rules": [
-				{
-					"id": "type",
-					"field": "type",
-					"type": "string",
-					"input": "select",
-					"operator": "equal",
-					"value": "component"
-				},
-				{
-					"condition": "AND",
-					"rules": [
-						{
-							"id": "rootWorkspace",
-							"field": "rootWorkspace",
-							"type": "string",
-							"input": "text",
-							"operator": "equal",
-							"value": "%s"
-						},
-						{
-							"id": "parent",
-							"field": "parent",
-							"type": "string",
-							"input": "text",
-							"operator": "equal",
-							"value": "%s"
-						},
-						{
-							"id": "typeName",
-							"field": "typeName",
-							"type": "string",
-							"input": "text",
-							"operator": "contains",
-							"value": "%s"
-						},
-						{
-							"id": "name",
-							"field": "name",
-							"type": "string",
-							"input": "text",
-							"operator": "contains",
-							"value": "%s"
-						}
-					]
-				}
-			]
-		}`, workspaceId, parentId, resourceType, resourceName))
-	payload := bytes.NewBuffer(searchQuery)
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
-
-	if err != nil {
-		klog.Fatal(err)
-	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", apiKey))
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := client.Do(req)
-	if err != nil {
-		klog.Fatal(err)
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			klog.Fatal(err)
-		}
-	}(res.Body)
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		klog.Fatal(err)
-	}
-	parsed, err := gabs.ParseJSON(body)
-	if err != nil {
-		klog.Fatal(err)
-	}
-	return parsed, nil
-}
 func (r *Resource) IsApplicationResourceValid() bool {
 	if r.Name != "" && r.Namespace != "" && r.ResourceType != "" && r.Image != "" && Contains(validApplicationResourceTypes, r.ResourceType) {
 		return true
