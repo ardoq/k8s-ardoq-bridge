@@ -1,7 +1,6 @@
 package k8s_test
 
 import (
-	"K8SArdoqBridge/app/controllers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -25,14 +24,9 @@ var _ = Describe("ApplicationResource", func() {
 			klog.Infof("Created deployment")
 		})
 		It("Can fetch tagged Deployments", func() {
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("default", "Deployment", "web-deploy")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added Deployment: "web-deploy"*`))
 		})
-		It("Can not find deleted Deployments", func() {
+		It("Can delete Deployments", func() {
 			klog.Info("Deleting deployment...")
 			cmd := exec.Command("kubectl", "delete", "--wait=true", "-f", "manifests/deployment.yaml")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
@@ -43,13 +37,9 @@ var _ = Describe("ApplicationResource", func() {
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			klog.Info("Deleted deployment.")
-
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("default", "Deployment", "web-deploy")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).Should(BeZero())
+		})
+		It("Can not find deleted Deployments", func() {
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted Deployment: "web-deploy"*`))
 		})
 	})
 
@@ -67,14 +57,9 @@ var _ = Describe("ApplicationResource", func() {
 			klog.Infof("Created statefulset")
 		})
 		It("Can fetch created StatefulSet", func() {
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added StatefulSet: "web-sts"*`))
 		})
-		It("Can not find deleted StatefulSets", func() {
+		It("Can deleted StatefulSets", func() {
 			klog.Info("Deleting statefulset...")
 			cmd := exec.Command("kubectl", "delete", "--wait=true", "-f", "manifests/statefulset.yaml")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
@@ -85,13 +70,9 @@ var _ = Describe("ApplicationResource", func() {
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			klog.Info("Deleted statefulset.")
-
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("default", "StatefulSet", "web-sts")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).Should(BeZero())
+		})
+		It("Can not find deleted StatefulSets", func() {
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted StatefulSet: "web-sts"*`))
 		})
 	})
 	Context("Namespace tests", Ordered, func() {
@@ -126,28 +107,13 @@ var _ = Describe("ApplicationResource", func() {
 			Eventually(session.Out, 5).Should(gbytes.Say(".*deleted.*"))
 		})
 		It("Can fetch StatefulSets in a labelled namespace", func() {
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("labelled-ns", "StatefulSet", "labelled-ns-web-sts")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] StatefulSet: "labelled-ns-web-sts"*`))
 		})
 		It("Can fetch Deployments in a labelled namespace", func() {
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("labelled-ns", "Deployment", "labelled-ns-web-deploy")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-web-deploy"*`))
 		})
 		It("Can not find Excluded resources", func() {
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch("labelled-ns", "Deployment", "labelled-ns-disbaled-web-deploy")
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).Should(BeZero())
+			Eventually(session.Err, 20).ShouldNot(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-disbaled-web-deploy"*`))
 		})
 	})
 })
