@@ -160,7 +160,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	switch resourceType {
 	case "Cluster":
 		name = genericResource.(string)
-		componentId = LookupCluster(name)
+		componentId = LookupCluster(name, true)
 		break
 	case "Namespace":
 		name = genericResource.(string)

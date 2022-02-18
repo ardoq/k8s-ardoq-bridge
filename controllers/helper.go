@@ -25,11 +25,14 @@ func ardRestClient() *ardoq.APIClient {
 	}
 	return a
 }
-func LookupCluster(name string) string {
+func LookupCluster(name string, deletion ...bool) string {
 	if cachedResource, found := Cache.Get("ResourceType/Cluster/" + name); found {
 		return cachedResource.(string)
 	}
-	return GenericUpsert("Cluster", name)
+	if !(len(deletion) > 0 && deletion[0]) {
+		return GenericUpsert("Cluster", name)
+	}
+	return ""
 }
 func LookupNamespace(name string) string {
 	if cachedResource, found := Cache.Get("ResourceType/Namespace/" + name); found {
