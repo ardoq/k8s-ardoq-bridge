@@ -9,7 +9,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mories76/ardoq-client-go v0.0.9
 	github.com/onsi/ginkgo v1.16.5 // indirect
-	github.com/onsi/ginkgo/v2 v2.1.1
+	github.com/onsi/ginkgo/v2 v2.1.2
 	github.com/onsi/gomega v1.18.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1

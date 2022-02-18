@@ -53,6 +53,13 @@ var (
 	id                 string
 )
 
+//func main() {
+//	err := controllers.InitializeCache()
+//	if err != nil {
+//		klog.Fatalf("Error building cache: %s", err.Error())
+//	}
+//}
+
 func main() {
 
 	klog.InitFlags(nil)
@@ -127,10 +134,12 @@ func main() {
 		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
 	}
 	controllers.GenericUpsert("Cluster", os.Getenv("ARDOQ_CLUSTER"))
+
 	klog.Info("Initialised cluster in Ardoq")
-	//start Resource Consumers
-	go controllers.ResourceUpsertConsumer()
-	go controllers.ResourceDeleteConsumer()
+
+	//start Resource/Node Consumers
+	go controllers.ResourceConsumer()
+	go controllers.NodeConsumer()
 
 	klog.Info("Starting event buffer...")
 

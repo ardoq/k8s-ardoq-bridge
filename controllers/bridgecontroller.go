@@ -12,9 +12,18 @@ import (
 	"time"
 )
 
+type resourceQueue struct {
+	action string
+	data   Resource
+}
+type nodeQueue struct {
+	action string
+	data   Node
+}
+
 var (
-	upsertQueue = make(chan Resource)
-	deleteQueue = make(chan Resource)
+	resourceQueues = make(chan resourceQueue)
+	nodeQueues     = make(chan nodeQueue)
 )
 
 type BridgeController struct {
@@ -71,10 +80,18 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		upsertQueue <- resource
+		toQueue := resourceQueue{
+			action: "UPSERT",
+			data:   resource,
+		}
+		resourceQueues <- toQueue
 		break
 	case watch.Deleted:
-		deleteQueue <- resource
+		toQueue := resourceQueue{
+			action: "DELETE",
+			data:   resource,
+		}
+		resourceQueues <- toQueue
 		break
 	}
 }
@@ -113,30 +130,55 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	}
 	switch event.Type {
 	case watch.Added, watch.Modified:
-		GenericUpsert("Node", node)
+		toQueue := nodeQueue{
+			action: "UPSERT",
+			data:   node,
+		}
+		nodeQueues <- toQueue
 		break
 	case watch.Deleted:
-		err := GenericDelete("Node", node)
-		if err != nil {
-			return
+		toQueue := nodeQueue{
+			action: "DELETE",
+			data:   node,
 		}
+		nodeQueues <- toQueue
 		break
 	}
 }
 
-func ResourceUpsertConsumer() {
-	for res := range upsertQueue {
-		GenericUpsert(res.ResourceType, res)
-	}
-}
-func ResourceDeleteConsumer() {
-	for res := range deleteQueue {
-		err := GenericDelete(res.ResourceType, res)
-		if err != nil {
-			return
+func ResourceConsumer() {
+	for q := range resourceQueues {
+		switch q.action {
+		case "UPSERT":
+			GenericUpsert(q.data.ResourceType, q.data)
+			break
+		case "DELETE":
+			err := GenericDelete(q.data.ResourceType, q.data)
+			if err != nil {
+				return
+			}
+			break
 		}
+
 	}
 }
+func NodeConsumer() {
+	for q := range nodeQueues {
+		switch q.action {
+		case "UPSERT":
+			GenericUpsert("Node", q.data)
+			break
+		case "DELETE":
+			err := GenericDelete("Node", q.data)
+			if err != nil {
+				return
+			}
+			break
+		}
+
+	}
+}
+
 func (b *BridgeController) ControlLoop(cancelContext context.Context) {
 
 	for {
