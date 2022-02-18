@@ -3,7 +3,6 @@ module K8SArdoqBridge/app
 go 1.15
 
 require (
-	github.com/Jeffail/gabs v1.4.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
 	github.com/mories76/ardoq-client-go v0.0.9
 	github.com/onsi/ginkgo v1.16.5 // indirect

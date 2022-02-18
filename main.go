@@ -53,13 +53,6 @@ var (
 	id                 string
 )
 
-//func main() {
-//	err := controllers.InitializeCache()
-//	if err != nil {
-//		klog.Fatalf("Error building cache: %s", err.Error())
-//	}
-//}
-
 func main() {
 
 	klog.InitFlags(nil)
