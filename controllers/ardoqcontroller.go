@@ -117,7 +117,6 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			break
 		}
 		klog.Infof("Added %s: %q: %s", resourceType, component.Name, componentId)
-		ApplyDelay()
 		return componentId
 	}
 	switch resourceType {
