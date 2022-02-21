@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	"errors"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"k8s.io/klog/v2"
 	"os"
+	"time"
 )
 
 var (
@@ -97,7 +99,9 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		break
 	}
 	if componentId == "" {
+		requestStarted := time.Now()
 		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
 			klog.Errorf("Error creating %s: %s", resourceType, err)
 		}
@@ -140,7 +144,9 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		PersistToCache("ResourceType/"+resourceType+"/"+name, node)
 		break
 	}
+	requestStarted := time.Now()
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error updating %s|%s: %s", resourceType, name, err)
 	}
@@ -184,7 +190,9 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	if componentId == "" {
 		return errors.New("resource not found")
 	}
+	requestStarted := time.Now()
 	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error deleting %s|%s : %s", resourceType, name, err)
 		return err

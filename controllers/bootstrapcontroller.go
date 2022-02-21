@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"gopkg.in/yaml.v2"
@@ -8,6 +9,7 @@ import (
 	"k8s.io/klog/v2"
 	"os"
 	"strconv"
+	"time"
 )
 
 func BootstrapModel() error {
@@ -27,22 +29,25 @@ func BootstrapModel() error {
 		klog.Errorf("Unmarshal: %v", err)
 		return err
 	}
-
+	requestStarted := time.Now()
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error getting workspace: %s", err)
 		return err
 	}
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
+	requestStarted = time.Now()
 	currentModel, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error getting model: %s", err)
 		return err
 	}
 
 	model.ID = currentModel.ID
-	err = UpdateModel(context.TODO(), componentModel, model)
+	err = UpdateModel(componentModel, model)
 	if err != nil {
 		klog.Errorf("Error updating model: %s", err)
 		return err
@@ -66,14 +71,16 @@ func BootstrapFields() error {
 		klog.Errorf("Unmarshal: %v", err)
 		return err
 	}
+	requestStarted := time.Now()
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error getting workspace: %s", err)
 		return err
 	}
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
-	err = CreateFields(context.TODO(), componentModel, fields)
+	err = CreateFields(componentModel, fields)
 	if err != nil {
 		klog.Errorf("Error updating Fields: %s", err)
 		return err
@@ -81,7 +88,9 @@ func BootstrapFields() error {
 	return nil
 }
 func InitializeCache() error {
+	requestStarted := time.Now()
 	components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
+	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error fetching components %s: %s", err)
 		return err

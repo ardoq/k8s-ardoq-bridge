@@ -22,4 +22,9 @@ var (
 		Name: "k8sardoqbridge_cache_persist_total",
 		Help: "Total Number of items persisted to cache",
 	})
+	RequestLatency = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "k8sardoqbridge_request_latency",
+		Help: "Request latencies",
+	},
+		[]string{"action"})
 )

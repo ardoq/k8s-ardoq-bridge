@@ -58,13 +58,17 @@ func lookUpTypeId(name string) string {
 	if typeId, found := GetFromCache("ArdoqTypes/" + name); found {
 		return typeId.(string)
 	}
+	requestStarted := time.Now()
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error getting workspace: %s", err)
 	}
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
+	requestStarted = time.Now()
 	model, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		klog.Errorf("Error getting model: %s", err)
 	}
