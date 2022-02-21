@@ -46,7 +46,7 @@ func BootstrapModel() error {
 	return nil
 }
 func BootstrapFields() error {
-	yamlFile, err := ioutil.ReadFile("bootstrap_types.yaml")
+	yamlFile, err := ioutil.ReadFile("bootstrap_fields.yaml")
 	if err != nil {
 		klog.Errorf("yamlFile.Get err #%v ", err)
 	}
