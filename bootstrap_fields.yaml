@@ -1,0 +1,75 @@
+- label: "Node Allocatable CPU"
+  type: Number
+  componentType: [ "Node" ]
+- label: "Node Allocatable Memory"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Allocatable Pods"
+  type: Number
+  componentType: [ "Node" ]
+- label: "Node Allocatable Storage"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Architecture"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Capacity CPU"
+  type: Number
+  componentType: [ "Node" ]
+- label: "Node Capacity Memory"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Capacity Pods"
+  type: Number
+  componentType: [ "Node" ]
+- label: "Node Capacity Storage"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Container Runtime"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Creation Timestamp"
+  type: DateTime
+  componentType: [ "Node" ]
+- label: "Node Kernel Version"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node KubeProxy Version"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Kubelet Version"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node OS Image"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node OS"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Provider"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Region"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Node Zone"
+  type: Text
+  componentType: [ "Node" ]
+- label: "Resource Creation Timestamp"
+  type: DateTime
+  componentType: [ "Deployment","StatefulSet" ]
+- label: "Resource Image"
+  type: Text
+  componentType: [ "Deployment","StatefulSet" ]
+- label: "Resource Project"
+  type: Text
+  componentType: [ "Deployment","StatefulSet" ]
+- label: "Resource Replicas"
+  type: Text
+  componentType: [ "Deployment","StatefulSet" ]
+- label: "Resource Stack"
+  type: Text
+  componentType: [ "Deployment","StatefulSet" ]
+- label: "Resource Team"
+  type: Text
+  componentType: ["Deployment", "StatefulSet"]

@@ -35,3 +35,38 @@ type Node struct {
 	Region            string
 	Zone              string
 }
+
+type ModelRequest struct {
+	ID          string              `json:"_id"`
+	Description string              `json:"description"`
+	Root        ModelComponentTypes `json:"root"`
+}
+type ModelReferenceTypes map[string]struct {
+	Name         string `json:"name"`
+	ID           int    `json:"id"`
+	Color        string `json:"color"`
+	Line         string `json:"line"`
+	LineEnding   string `json:"lineEnding"`
+	ReturnsValue bool   `json:"returnsValue"`
+	SvgStyle     string `json:"svgStyle"`
+}
+type ModelComponentTypes map[string]struct {
+	Children     ModelComponentTypes `json:"children"`
+	Name         string              `json:"name"`
+	ID           string              `json:"id"`
+	Icon         string              `json:"icon"`
+	Color        string              `json:"color"`
+	Image        interface{}         `json:"image"`
+	Level        int                 `json:"level"`
+	ReturnsValue bool                `json:"returnsValue"`
+	Shape        interface{}         `json:"shape"`
+	Standard     interface{}         `json:"standard"`
+}
+
+type FieldRequest struct {
+	ComponentType []string `yaml:"componentType,flow" json:"componentType"`
+	Global        bool     `json:"global"`
+	Label         string   `json:"label"`
+	Model         string   `json:"model"`
+	Type          string   `json:"type"`
+}

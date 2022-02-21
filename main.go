@@ -114,13 +114,28 @@ func main() {
 			cancel()
 		}
 	}()
+	//Initialise the Model in Ardoq
+	err = controllers.BootstrapModel()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	klog.Info("Initialized the Model")
+	//Initialise the Custom Fields
+	err = controllers.BootstrapFields()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	klog.Info("Initialised Custom Fields")
 
 	//initialise cluster
 	if os.Getenv("ARDOQ_CLUSTER") == "" {
 		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
 	}
-	klog.Info("Initialising cluster in Ardoq")
 	controllers.GenericUpsert("Cluster", os.Getenv("ARDOQ_CLUSTER"))
+
+	klog.Info("Initialised cluster in Ardoq")
 
 	//start Resource/Node Consumers
 	go controllers.ResourceConsumer()
