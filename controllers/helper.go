@@ -70,7 +70,7 @@ func lookUpTypeId(name string) string {
 	}
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
-		SetToCache("ArdoqTypes/"+name, cmpTypes[name])
+		PersistToCache("ArdoqTypes/"+name, cmpTypes[name])
 		return cmpTypes[name]
 	} else {
 		return ""
@@ -114,7 +114,7 @@ func GetFromCache(name string) (interface{}, bool) {
 		return nil, false
 	}
 }
-func SetToCache(name string, value interface{}) {
+func PersistToCache(name string, value interface{}) {
 	Cache.Set(name, value, goCache.NoExpiration)
-	metrics.CacheSets.Inc()
+	metrics.CachePersists.Inc()
 }

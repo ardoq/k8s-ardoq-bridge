@@ -95,7 +95,7 @@ func InitializeCache() error {
 	for _, v := range *components {
 		if v.Type == "Cluster" && v.Name == os.Getenv("ARDOQ_CLUSTER") {
 			clusterComponent = v
-			SetToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
+			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
 		}
 	}
 	if clusterComponent.ID == "" {
@@ -106,7 +106,7 @@ func InitializeCache() error {
 		if v.Type == "Namespace" && v.Parent == clusterComponent.ID {
 			namespaceComponents = append(namespaceComponents, v)
 			namespaces = append(namespaces, v.ID)
-			SetToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
+			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
 		}
 	}
 	//get nodes
@@ -140,7 +140,7 @@ func InitializeCache() error {
 				Region:            v.Fields["node_zone"].(string),
 				Zone:              v.Fields["node_region"].(string),
 			}
-			SetToCache("ResourceType/"+v.Type+"/"+v.Name, node)
+			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, node)
 		}
 	}
 	//get application resources
@@ -161,7 +161,7 @@ func InitializeCache() error {
 			if i, err := strconv.ParseInt(v.Fields["resource_replicas"].(string), 10, 32); err == nil {
 				resource.Replicas = int32(i)
 			}
-			SetToCache("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource)
+			PersistToCache("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource)
 		}
 	}
 	return nil

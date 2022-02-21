@@ -12,14 +12,14 @@ var (
 	})
 	CacheHits = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "k8sardoqbridge_cache_hit_total",
-		Help: "Total Number of resources fetched from the cache",
+		Help: "Total Number of items fetched from the cache",
 	})
 	CacheMiss = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "k8sardoqbridge_cache_miss_total",
-		Help: "Total Number of resources fetched from remote source",
+		Help: "Total Number of items fetched from remote source",
 	})
-	CacheSets = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "k8sardoqbridge_cache_set_total",
-		Help: "Total Number of resources persisted to cache",
+	CachePersists = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "k8sardoqbridge_cache_persist_total",
+		Help: "Total Number of items persisted to cache",
 	})
 )

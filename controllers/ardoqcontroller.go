@@ -104,15 +104,15 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		componentId = cmp.ID
 		switch resourceType {
 		case "Namespace", "Cluster":
-			SetToCache("ResourceType/"+resourceType+"/"+name, componentId)
+			PersistToCache("ResourceType/"+resourceType+"/"+name, componentId)
 			break
 		case "Deployment", "StatefulSet":
 			resource.ID = componentId
-			SetToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
+			PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
 			break
 		case "Node":
 			node.ID = componentId
-			SetToCache("ResourceType/"+resourceType+"/"+name, node)
+			PersistToCache("ResourceType/"+resourceType+"/"+name, node)
 			break
 		}
 		klog.Infof("Added %s: %q: %s", resourceType, component.Name, componentId)
@@ -123,21 +123,21 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		if cachedResource, found := GetFromCache("ResourceType/" + resourceType + "/" + name); found {
 			return cachedResource.(string)
 		}
-		SetToCache("ResourceType/"+resourceType+"/"+name, componentId)
+		PersistToCache("ResourceType/"+resourceType+"/"+name, componentId)
 		break
 	case "Deployment", "StatefulSet":
 		resource.ID = componentId
 		if cachedResource, found := GetFromCache("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
 			return componentId
 		}
-		SetToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
+		PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
 		break
 	case "Node":
 		node.ID = componentId
 		if cachedResource, found := GetFromCache("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Node) == node {
 			return componentId
 		}
-		SetToCache("ResourceType/"+resourceType+"/"+name, node)
+		PersistToCache("ResourceType/"+resourceType+"/"+name, node)
 		break
 	}
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
