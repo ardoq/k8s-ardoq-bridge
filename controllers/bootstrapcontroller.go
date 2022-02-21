@@ -11,6 +11,7 @@ func BootstrapModel() error {
 	yamlFile, err := ioutil.ReadFile("bootstrap_models.yaml")
 	if err != nil {
 		klog.Errorf("yamlFile.Get err #%v ", err)
+		return err
 	}
 	model := ModelRequest{}
 	if err != nil {
@@ -34,6 +35,7 @@ func BootstrapModel() error {
 	currentModel, err := ardRestClient().Models().Read(context.TODO(), componentModel)
 	if err != nil {
 		klog.Errorf("Error getting model: %s", err)
+		return err
 	}
 
 	model.ID = currentModel.ID
@@ -49,6 +51,7 @@ func BootstrapFields() error {
 	yamlFile, err := ioutil.ReadFile("bootstrap_fields.yaml")
 	if err != nil {
 		klog.Errorf("yamlFile.Get err #%v ", err)
+		return err
 	}
 	var fields []FieldRequest
 	if err != nil {
