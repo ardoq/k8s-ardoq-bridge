@@ -25,6 +25,9 @@ var (
 	RequestLatency = promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "k8sardoqbridge_request_latency",
 		Help: "Request latencies",
-	},
-		[]string{"action"})
+	}, []string{"action"})
+	RequestStatusCode = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "k8sardoqbridge_request_response_status",
+		Help: "Request responses by status",
+	}, []string{"status"})
 )

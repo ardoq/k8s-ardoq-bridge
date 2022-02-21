@@ -33,18 +33,22 @@ func BootstrapModel() error {
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	requestStarted = time.Now()
 	currentModel, err := ardRestClient().Models().Read(context.TODO(), componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting model: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 
 	model.ID = currentModel.ID
 	err = UpdateModel(componentModel, model)
@@ -75,9 +79,11 @@ func BootstrapFields() error {
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	err = CreateFields(componentModel, fields)
@@ -92,9 +98,11 @@ func InitializeCache() error {
 	components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error fetching components %s: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get the current cluster
 	var clusterComponent ardoq.Component
 	var nodeComponents []ardoq.Component

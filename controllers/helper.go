@@ -62,16 +62,20 @@ func lookUpTypeId(name string) string {
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting workspace: %s", err)
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	requestStarted = time.Now()
 	model, err := ardRestClient().Models().Read(context.TODO(), componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting model: %s", err)
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
 		PersistToCache("ArdoqTypes/"+name, cmpTypes[name])

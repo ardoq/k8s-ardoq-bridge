@@ -19,12 +19,15 @@ func UpdateModel(id string, model ModelRequest) error {
 		Receive(res, errResponse)
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Error(err)
 		return errors.Wrap(err, "could not get model")
 	}
 	if errResponse.NotOk() {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		errResponse.Code = resp.StatusCode
 		return errResponse
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	return nil
 }

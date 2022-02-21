@@ -103,8 +103,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
 		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			klog.Errorf("Error creating %s: %s", resourceType, err)
 		}
+		metrics.RequestStatusCode.WithLabelValues("success").Inc()
 		componentId = cmp.ID
 		switch resourceType {
 		case "Namespace", "Cluster":
@@ -148,8 +150,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error updating %s|%s: %s", resourceType, name, err)
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	klog.Infof("Updated %s: %q: %s", resourceType, component.Name, componentId)
 	return componentId
 }
@@ -194,9 +198,11 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	err = ardRestClient().Components().Delete(context.TODO(), componentId)
 	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error deleting %s|%s : %s", resourceType, name, err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	switch resourceType {
 	case "Deployment", "StatefulSet":
 		Cache.Delete("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name)
