@@ -53,13 +53,6 @@ var (
 	id                 string
 )
 
-//func main() {
-//	err := controllers.InitializeCache()
-//	if err != nil {
-//		klog.Fatalf("Error building cache: %s", err.Error())
-//	}
-//}
-
 func main() {
 
 	klog.InitFlags(nil)
@@ -129,12 +122,18 @@ func main() {
 	}
 	klog.Info("Initialised Custom Fields")
 
+	//initialize the cache
+	err = controllers.InitializeCache()
+	if err != nil {
+		klog.Fatalf("Error building cache: %s", err.Error())
+	}
+	klog.Info("Cache initialized")
+
 	//initialise cluster
 	if os.Getenv("ARDOQ_CLUSTER") == "" {
 		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
 	}
-	controllers.GenericUpsert("Cluster", os.Getenv("ARDOQ_CLUSTER"))
-
+	controllers.LookupCluster(os.Getenv("ARDOQ_CLUSTER"))
 	klog.Info("Initialised cluster in Ardoq")
 
 	//start Resource/Node Consumers

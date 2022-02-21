@@ -3,7 +3,6 @@ module K8SArdoqBridge/app
 go 1.15
 
 require (
-	github.com/Jeffail/gabs v1.4.0
 	github.com/dghubble/sling v1.4.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
 	github.com/mitchellh/mapstructure v1.4.2

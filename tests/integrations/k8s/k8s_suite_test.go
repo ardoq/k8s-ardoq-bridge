@@ -3,6 +3,9 @@ package k8s_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
+	"context"
+	"fmt"
+	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"k8s.io/client-go/util/homedir"
@@ -44,19 +47,39 @@ var _ = BeforeSuite(func() {
 	session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
-	Eventually(session.Err, 15).Should(gbytes.Say(`.*Initialised cluster in Ardoq`))
+	Eventually(session.Err, 20).Should(gbytes.Say(`.*Initialised cluster in Ardoq`))
 	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
 	Eventually(session.Err, 20).Should(gbytes.Say(`.*successfully acquired lease.*`))
-	controllers.ApplyDelay(10)
+	controllers.ApplyDelay(5)
 	klog.Info("Initializing Complete")
 })
 
 var _ = AfterSuite(func() {
 	klog.Info("Cleanup")
+	//cleanup cluster in ardoq
+	cleanupCluster()
 	//cleanup running binary
 	session.Kill()
 	gexec.CleanupBuildArtifacts()
-	//cleanup cluster in ardoq
-	_ = controllers.GenericDelete("Cluster", os.Getenv("ARDOQ_CLUSTER"))
 	klog.Info("Cleanup Complete...Terminating!!")
 })
+
+func cleanupCluster() {
+	a, err := ardoq.NewRestClient(os.Getenv("ARDOQ_BASEURI"), os.Getenv("ARDOQ_APIKEY"), os.Getenv("ARDOQ_ORG"), "v0.0.0")
+	if err != nil {
+		fmt.Printf("cannot create new restclient %s", err)
+		os.Exit(1)
+	}
+	cluster, err := a.Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: os.Getenv("ARDOQ_WORKSPACE_ID"), Name: os.Getenv("ARDOQ_CLUSTER")})
+	if err != nil {
+		klog.Errorf("Error fetching cluster %s: %s", err)
+	}
+
+	for _, v := range *cluster {
+		err = a.Components().Delete(context.TODO(), v.ID)
+		if err != nil {
+			klog.Errorf("Error deleting Cluster : %s", v.Name, err)
+
+		}
+	}
+}

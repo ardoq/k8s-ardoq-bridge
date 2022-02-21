@@ -67,12 +67,6 @@ var _ = Describe("Deployments", Ordered, func() {
 		It("Can create Deployment", func() {
 			deploy.ID = controllers.GenericUpsert("Deployment", *deploy)
 			Expect(deploy.ID).ShouldNot(BeNil())
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch(deploy.Namespace, deploy.ResourceType, deploy.Name)
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
 		})
 		It("Can Update Deployment", func() {
 			deploy.Replicas += 1
@@ -146,12 +140,6 @@ var _ = Describe("StatefulSets", Ordered, func() {
 		It("Can create StatefulSet", func() {
 			sts.ID = controllers.GenericUpsert("StatefulSet", *sts)
 			Expect(sts.ID).ShouldNot(BeNil())
-			Eventually(func() float64 {
-				data, err := controllers.ApplicationResourceSearch(sts.Namespace, sts.ResourceType, sts.Name)
-				Expect(err).ShouldNot(HaveOccurred())
-				parsedData := data.Path("total").Data().(float64)
-				return parsedData
-			}, 20).ShouldNot(BeZero())
 		})
 		It("Can Update StatefulSet", func() {
 			sts.Replicas += 1
