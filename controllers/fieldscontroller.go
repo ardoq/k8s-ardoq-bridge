@@ -20,7 +20,6 @@ func CreateFields(id string, fields []FieldRequest) error {
 			Receive(res, errResponse)
 		metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 		if errResponse.Code == 409 {
-			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			continue
 		} else if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
