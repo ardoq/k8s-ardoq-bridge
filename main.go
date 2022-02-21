@@ -107,6 +107,20 @@ func main() {
 			cancel()
 		}
 	}()
+	//Initialise the Model in Ardoq
+	err = controllers.BootstrapModel()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	klog.Info("Initialized the Model")
+	//Initialise the Custom Fields
+	err = controllers.BootstrapFields()
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	klog.Info("Initialised Custom Fields")
 
 	//initialize the cache
 	err = controllers.InitializeCache()
