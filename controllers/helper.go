@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	"fmt"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
@@ -25,7 +26,7 @@ func ardRestClient() *ardoq.APIClient {
 	return a
 }
 func LookupCluster(name string, deletion ...bool) string {
-	if cachedResource, found := Cache.Get("ResourceType/Cluster/" + name); found {
+	if cachedResource, found := GetFromCache("ResourceType/Cluster/" + name); found {
 		return cachedResource.(string)
 	}
 	if !(len(deletion) > 0 && deletion[0]) {
@@ -34,27 +35,27 @@ func LookupCluster(name string, deletion ...bool) string {
 	return ""
 }
 func LookupNamespace(name string) string {
-	if cachedResource, found := Cache.Get("ResourceType/Namespace/" + name); found {
+	if cachedResource, found := GetFromCache("ResourceType/Namespace/" + name); found {
 		return cachedResource.(string)
 	}
 	return ""
 }
 
 func LookupResource(namespace string, resourceType string, resourceName string) string {
-	if cachedResource, found := Cache.Get("ResourceType/" + namespace + "/" + resourceType + "/" + resourceName); found {
+	if cachedResource, found := GetFromCache("ResourceType/" + namespace + "/" + resourceType + "/" + resourceName); found {
 		return cachedResource.(Resource).ID
 	}
 	return ""
 }
 func LookupNode(name string) string {
-	if cachedResource, found := Cache.Get("ResourceType/Node/" + name); found {
+	if cachedResource, found := GetFromCache("ResourceType/Node/" + name); found {
 		return cachedResource.(Node).ID
 	}
 	return ""
 }
 
 func lookUpTypeId(name string) string {
-	if typeId, found := Cache.Get("ArdoqTypes/" + name); found {
+	if typeId, found := GetFromCache("ArdoqTypes/" + name); found {
 		return typeId.(string)
 	}
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
@@ -69,7 +70,7 @@ func lookUpTypeId(name string) string {
 	}
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
-		Cache.Set("ArdoqTypes/"+name, cmpTypes[name], goCache.NoExpiration)
+		SetToCache("ArdoqTypes/"+name, cmpTypes[name])
 		return cmpTypes[name]
 	} else {
 		return ""
@@ -103,4 +104,17 @@ func Contains(s []string, str string) bool {
 		}
 	}
 	return false
+}
+func GetFromCache(name string) (interface{}, bool) {
+	if cachedResource, found := Cache.Get(name); found {
+		metrics.CacheHits.Inc()
+		return cachedResource, true
+	} else {
+		metrics.CacheMiss.Inc()
+		return nil, false
+	}
+}
+func SetToCache(name string, value interface{}) {
+	Cache.Set(name, value, goCache.NoExpiration)
+	metrics.CacheSets.Inc()
 }

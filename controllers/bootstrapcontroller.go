@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
-	goCache "github.com/patrickmn/go-cache"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/klog/v2"
@@ -96,7 +95,7 @@ func InitializeCache() error {
 	for _, v := range *components {
 		if v.Type == "Cluster" && v.Name == os.Getenv("ARDOQ_CLUSTER") {
 			clusterComponent = v
-			Cache.Set("ResourceType/"+v.Type+"/"+v.Name, v.ID, goCache.NoExpiration)
+			SetToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
 		}
 	}
 	if clusterComponent.ID == "" {
@@ -107,7 +106,7 @@ func InitializeCache() error {
 		if v.Type == "Namespace" && v.Parent == clusterComponent.ID {
 			namespaceComponents = append(namespaceComponents, v)
 			namespaces = append(namespaces, v.ID)
-			Cache.Set("ResourceType/"+v.Type+"/"+v.Name, v.ID, goCache.NoExpiration)
+			SetToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
 		}
 	}
 	//get nodes
@@ -141,7 +140,7 @@ func InitializeCache() error {
 				Region:            v.Fields["node_zone"].(string),
 				Zone:              v.Fields["node_region"].(string),
 			}
-			Cache.Set("ResourceType/"+v.Type+"/"+v.Name, node, goCache.NoExpiration)
+			SetToCache("ResourceType/"+v.Type+"/"+v.Name, node)
 		}
 	}
 	//get application resources
@@ -162,7 +161,7 @@ func InitializeCache() error {
 			if i, err := strconv.ParseInt(v.Fields["resource_replicas"].(string), 10, 32); err == nil {
 				resource.Replicas = int32(i)
 			}
-			Cache.Set("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource, goCache.NoExpiration)
+			SetToCache("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource)
 		}
 	}
 	return nil
