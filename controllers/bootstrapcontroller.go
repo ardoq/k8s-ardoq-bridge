@@ -1,14 +1,15 @@
 package controllers
 
 import (
+	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
-	goCache "github.com/patrickmn/go-cache"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/klog/v2"
 	"os"
 	"strconv"
+	"time"
 )
 
 func BootstrapModel() error {
@@ -28,22 +29,29 @@ func BootstrapModel() error {
 		klog.Errorf("Unmarshal: %v", err)
 		return err
 	}
-
+	requestStarted := time.Now()
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
+	requestStarted = time.Now()
 	currentModel, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting model: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 
 	model.ID = currentModel.ID
-	err = UpdateModel(context.TODO(), componentModel, model)
+	err = UpdateModel(componentModel, model)
 	if err != nil {
 		klog.Errorf("Error updating model: %s", err)
 		return err
@@ -67,14 +75,18 @@ func BootstrapFields() error {
 		klog.Errorf("Unmarshal: %v", err)
 		return err
 	}
+	requestStarted := time.Now()
 	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
-	err = CreateFields(context.TODO(), componentModel, fields)
+	err = CreateFields(componentModel, fields)
 	if err != nil {
 		klog.Errorf("Error updating Fields: %s", err)
 		return err
@@ -82,11 +94,15 @@ func BootstrapFields() error {
 	return nil
 }
 func InitializeCache() error {
+	requestStarted := time.Now()
 	components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
+	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error fetching components %s: %s", err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get the current cluster
 	var clusterComponent ardoq.Component
 	var nodeComponents []ardoq.Component
@@ -96,7 +112,7 @@ func InitializeCache() error {
 	for _, v := range *components {
 		if v.Type == "Cluster" && v.Name == os.Getenv("ARDOQ_CLUSTER") {
 			clusterComponent = v
-			Cache.Set("ResourceType/"+v.Type+"/"+v.Name, v.ID, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
 		}
 	}
 	if clusterComponent.ID == "" {
@@ -107,7 +123,7 @@ func InitializeCache() error {
 		if v.Type == "Namespace" && v.Parent == clusterComponent.ID {
 			namespaceComponents = append(namespaceComponents, v)
 			namespaces = append(namespaces, v.ID)
-			Cache.Set("ResourceType/"+v.Type+"/"+v.Name, v.ID, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
 		}
 	}
 	//get nodes
@@ -141,7 +157,7 @@ func InitializeCache() error {
 				Region:            v.Fields["node_zone"].(string),
 				Zone:              v.Fields["node_region"].(string),
 			}
-			Cache.Set("ResourceType/"+v.Type+"/"+v.Name, node, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, node)
 		}
 	}
 	//get application resources
@@ -162,7 +178,7 @@ func InitializeCache() error {
 			if i, err := strconv.ParseInt(v.Fields["resource_replicas"].(string), 10, 32); err == nil {
 				resource.Replicas = int32(i)
 			}
-			Cache.Set("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource)
 		}
 	}
 	return nil

@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	"errors"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
-	goCache "github.com/patrickmn/go-cache"
 	"k8s.io/klog/v2"
 	"os"
+	"time"
 )
 
 var (
@@ -98,22 +99,26 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		break
 	}
 	if componentId == "" {
+		requestStarted := time.Now()
 		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			klog.Errorf("Error creating %s: %s", resourceType, err)
 		}
+		metrics.RequestStatusCode.WithLabelValues("success").Inc()
 		componentId = cmp.ID
 		switch resourceType {
 		case "Namespace", "Cluster":
-			Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+resourceType+"/"+name, componentId)
 			break
 		case "Deployment", "StatefulSet":
 			resource.ID = componentId
-			Cache.Set("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
 			break
 		case "Node":
 			node.ID = componentId
-			Cache.Set("ResourceType/"+resourceType+"/"+name, node, goCache.NoExpiration)
+			PersistToCache("ResourceType/"+resourceType+"/"+name, node)
 			break
 		}
 		klog.Infof("Added %s: %q: %s", resourceType, component.Name, componentId)
@@ -121,31 +126,34 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 	switch resourceType {
 	case "Namespace", "Cluster":
-		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found {
+		if cachedResource, found := GetFromCache("ResourceType/" + resourceType + "/" + name); found {
 			return cachedResource.(string)
-		} else {
-			Cache.Set("ResourceType/"+resourceType+"/"+name, componentId, goCache.NoExpiration)
 		}
+		PersistToCache("ResourceType/"+resourceType+"/"+name, componentId)
 		break
 	case "Deployment", "StatefulSet":
 		resource.ID = componentId
-		if cachedResource, found := Cache.Get("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
+		if cachedResource, found := GetFromCache("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name); found && cachedResource.(Resource) == resource {
 			return componentId
 		}
-		Cache.Set("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource, goCache.NoExpiration)
+		PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
 		break
 	case "Node":
 		node.ID = componentId
-		if cachedResource, found := Cache.Get("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Node) == node {
+		if cachedResource, found := GetFromCache("ResourceType/" + resourceType + "/" + name); found && cachedResource.(Node) == node {
 			return componentId
 		}
-		Cache.Set("ResourceType/"+resourceType+"/"+name, node, goCache.NoExpiration)
+		PersistToCache("ResourceType/"+resourceType+"/"+name, node)
 		break
 	}
+	requestStarted := time.Now()
 	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error updating %s|%s: %s", resourceType, name, err)
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	klog.Infof("Updated %s: %q: %s", resourceType, component.Name, componentId)
 	return componentId
 }
@@ -186,11 +194,15 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	if componentId == "" {
 		return errors.New("resource not found")
 	}
+	requestStarted := time.Now()
 	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		klog.Errorf("Error deleting %s|%s : %s", resourceType, name, err)
 		return err
 	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	switch resourceType {
 	case "Deployment", "StatefulSet":
 		Cache.Delete("ResourceType/" + resource.Namespace + "/" + resourceType + "/" + name)
