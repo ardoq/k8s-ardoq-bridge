@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/dghubble/sling v1.4.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
-	github.com/mitchellh/mapstructure v1.4.2
+	github.com/mitchellh/mapstructure v1.4.3
 	github.com/mories76/ardoq-client-go v0.0.9
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/ginkgo/v2 v2.1.3
