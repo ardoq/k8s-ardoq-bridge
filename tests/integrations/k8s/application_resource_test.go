@@ -1,6 +1,7 @@
 package k8s_test
 
 import (
+	"K8SArdoqBridge/app/controllers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -25,6 +26,15 @@ var _ = Describe("ApplicationResource", func() {
 		})
 		It("Can fetch tagged Deployments", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added Deployment: "web-deploy"*`))
+
+			//re-initialize cache and confirm content
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, _ := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
+			Expect(cachedResource).ShouldNot(BeNil())
 		})
 		It("Can delete Deployments", func() {
 			klog.Info("Deleting deployment...")
@@ -40,6 +50,15 @@ var _ = Describe("ApplicationResource", func() {
 		})
 		It("Can not find deleted Deployments", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted Deployment: "web-deploy"*`))
+
+			//re-initialize cache and confirm content
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, _ := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
+			Expect(cachedResource).Should(BeNil())
 		})
 	})
 
@@ -58,6 +77,15 @@ var _ = Describe("ApplicationResource", func() {
 		})
 		It("Can fetch created StatefulSet", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added StatefulSet: "web-sts"*`))
+
+			//re-initialize cache and confirm content
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, _ := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
+			Expect(cachedResource).ShouldNot(BeNil())
 		})
 		It("Can deleted StatefulSets", func() {
 			klog.Info("Deleting statefulset...")
@@ -73,6 +101,15 @@ var _ = Describe("ApplicationResource", func() {
 		})
 		It("Can not find deleted StatefulSets", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted StatefulSet: "web-sts"*`))
+
+			//re-initialize cache and confirm content
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, _ := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
+			Expect(cachedResource).Should(BeNil())
 		})
 	})
 	Context("Namespace tests", Ordered, func() {
@@ -98,6 +135,13 @@ var _ = Describe("ApplicationResource", func() {
 			excludedSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(excludedSession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+
+			//re-initialize cache and confirm content
+			controllers.Cache.Flush()
+			err = controllers.InitializeCache()
+			if err != nil {
+				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
 		})
 		AfterAll(func() {
 			klog.Info("Cleaning up resources in a labelled namespace...")
@@ -108,12 +152,21 @@ var _ = Describe("ApplicationResource", func() {
 		})
 		It("Can fetch StatefulSets in a labelled namespace", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] StatefulSet: "labelled-ns-web-sts"*`))
+
+			cachedResource, _ := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-web-sts")
+			Expect(cachedResource).ShouldNot(BeNil())
 		})
 		It("Can fetch Deployments in a labelled namespace", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-web-deploy"*`))
+
+			cachedResource, _ := controllers.Cache.Get("ResourceType/labelled-ns/Deployment/labelled-ns-web-deploy")
+			Expect(cachedResource).ShouldNot(BeNil())
 		})
 		It("Can not find Excluded resources", func() {
 			Eventually(session.Err, 20).ShouldNot(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-disbaled-web-deploy"*`))
+
+			cachedResource, _ := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-disbaled-web-deploy")
+			Expect(cachedResource).Should(BeNil())
 		})
 	})
 })
