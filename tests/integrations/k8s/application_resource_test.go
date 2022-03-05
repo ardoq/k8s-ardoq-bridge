@@ -33,8 +33,9 @@ var _ = Describe("ApplicationResource", func() {
 			if err != nil {
 				klog.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
-			cachedResource, _ := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
+			cachedResource, found := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
 			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can delete Deployments", func() {
 			klog.Info("Deleting deployment...")
@@ -57,8 +58,9 @@ var _ = Describe("ApplicationResource", func() {
 			if err != nil {
 				klog.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
-			cachedResource, _ := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
+			cachedResource, found := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
 			Expect(cachedResource).Should(BeNil())
+			Expect(found).Should(BeFalse())
 		})
 	})
 
@@ -84,8 +86,9 @@ var _ = Describe("ApplicationResource", func() {
 			if err != nil {
 				klog.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
-			cachedResource, _ := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
+			cachedResource, found := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
 			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can deleted StatefulSets", func() {
 			klog.Info("Deleting statefulset...")
@@ -108,8 +111,9 @@ var _ = Describe("ApplicationResource", func() {
 			if err != nil {
 				klog.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
-			cachedResource, _ := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
+			cachedResource, found := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
 			Expect(cachedResource).Should(BeNil())
+			Expect(found).Should(BeFalse())
 		})
 	})
 	Context("Namespace tests", Ordered, func() {
@@ -153,20 +157,23 @@ var _ = Describe("ApplicationResource", func() {
 		It("Can fetch StatefulSets in a labelled namespace", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] StatefulSet: "labelled-ns-web-sts"*`))
 
-			cachedResource, _ := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-web-sts")
+			cachedResource, found := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-web-sts")
 			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can fetch Deployments in a labelled namespace", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-web-deploy"*`))
 
-			cachedResource, _ := controllers.Cache.Get("ResourceType/labelled-ns/Deployment/labelled-ns-web-deploy")
+			cachedResource, found := controllers.Cache.Get("ResourceType/labelled-ns/Deployment/labelled-ns-web-deploy")
 			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can not find Excluded resources", func() {
 			Eventually(session.Err, 20).ShouldNot(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-disbaled-web-deploy"*`))
 
-			cachedResource, _ := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-disbaled-web-deploy")
+			cachedResource, found := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-disbaled-web-deploy")
 			Expect(cachedResource).Should(BeNil())
+			Expect(found).Should(BeFalse())
 		})
 	})
 })
