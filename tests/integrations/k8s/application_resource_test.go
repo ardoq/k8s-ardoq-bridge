@@ -25,9 +25,6 @@ var _ = Describe("ApplicationResource", func() {
 			log.Infof("Created deployment")
 		})
 		It("Can fetch tagged Deployments", func() {
-			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added Deployment: "web-deploy"*`))
-
-			//re-initialize cache and confirm content
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
@@ -50,9 +47,8 @@ var _ = Describe("ApplicationResource", func() {
 			log.Info("Deleted deployment.")
 		})
 		It("Can not find deleted Deployments", func() {
-			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted Deployment: "web-deploy"*`))
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted Deployment: web-deploy*`))
 
-			//re-initialize cache and confirm content
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
@@ -78,9 +74,6 @@ var _ = Describe("ApplicationResource", func() {
 			log.Infof("Created statefulset")
 		})
 		It("Can fetch created StatefulSet", func() {
-			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added StatefulSet: "web-sts"*`))
-
-			//re-initialize cache and confirm content
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
@@ -103,9 +96,8 @@ var _ = Describe("ApplicationResource", func() {
 			log.Info("Deleted statefulset.")
 		})
 		It("Can not find deleted StatefulSets", func() {
-			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted StatefulSet: "web-sts"*`))
+			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted StatefulSet: web-sts*`))
 
-			//re-initialize cache and confirm content
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
@@ -140,7 +132,6 @@ var _ = Describe("ApplicationResource", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(excludedSession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
 
-			//re-initialize cache and confirm content
 			controllers.Cache.Flush()
 			err = controllers.InitializeCache()
 			if err != nil {
@@ -155,22 +146,16 @@ var _ = Describe("ApplicationResource", func() {
 			Eventually(session.Out, 5).Should(gbytes.Say(".*deleted.*"))
 		})
 		It("Can fetch StatefulSets in a labelled namespace", func() {
-			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] StatefulSet: "labelled-ns-web-sts"*`))
-
 			cachedResource, found := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-web-sts")
 			Expect(cachedResource).ShouldNot(BeNil())
 			Expect(found).Should(BeTrue())
 		})
 		It("Can fetch Deployments in a labelled namespace", func() {
-			Eventually(session.Err, 20).Should(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-web-deploy"*`))
-
 			cachedResource, found := controllers.Cache.Get("ResourceType/labelled-ns/Deployment/labelled-ns-web-deploy")
 			Expect(cachedResource).ShouldNot(BeNil())
 			Expect(found).Should(BeTrue())
 		})
 		It("Can not find Excluded resources", func() {
-			Eventually(session.Err, 20).ShouldNot(gbytes.Say(`.*[Added|Updated] Deployment: "labelled-ns-disbaled-web-deploy"*`))
-
 			cachedResource, found := controllers.Cache.Get("ResourceType/labelled-ns/StatefulSet/labelled-ns-disbaled-web-deploy")
 			Expect(cachedResource).Should(BeNil())
 			Expect(found).Should(BeFalse())
