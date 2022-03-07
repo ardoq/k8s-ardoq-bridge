@@ -6,14 +6,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"k8s.io/klog/v2"
+	log "github.com/sirupsen/logrus"
 	"os/exec"
 )
 
 var _ = Describe("ApplicationResource", func() {
 	Context("Deployment tests", Ordered, func() {
 		BeforeAll(func() {
-			klog.Info("Creating deployment...")
+			log.Info("Creating deployment...")
 			cmd := exec.Command("kubectl", "apply", "--wait=true", "-f", "manifests/deployment.yaml")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -22,7 +22,7 @@ var _ = Describe("ApplicationResource", func() {
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session.Out, 10).Should(gbytes.Say(".*pod.* met*"))
-			klog.Infof("Created deployment")
+			log.Infof("Created deployment")
 		})
 		It("Can fetch tagged Deployments", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added Deployment: "web-deploy"*`))
@@ -31,14 +31,14 @@ var _ = Describe("ApplicationResource", func() {
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
-				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
 			cachedResource, found := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
 			Expect(cachedResource).ShouldNot(BeNil())
 			Expect(found).Should(BeTrue())
 		})
 		It("Can delete Deployments", func() {
-			klog.Info("Deleting deployment...")
+			log.Info("Deleting deployment...")
 			cmd := exec.Command("kubectl", "delete", "--wait=true", "-f", "manifests/deployment.yaml")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -47,7 +47,7 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=delete", "--timeout=180s", "pod", "-l", "app=nginx,parent=deploy")
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			klog.Info("Deleted deployment.")
+			log.Info("Deleted deployment.")
 		})
 		It("Can not find deleted Deployments", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted Deployment: "web-deploy"*`))
@@ -56,7 +56,7 @@ var _ = Describe("ApplicationResource", func() {
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
-				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
 			cachedResource, found := controllers.Cache.Get("ResourceType/default/Deployment/web-deploy")
 			Expect(cachedResource).Should(BeNil())
@@ -66,7 +66,7 @@ var _ = Describe("ApplicationResource", func() {
 
 	Context("StatefulSet tests", Ordered, func() {
 		BeforeAll(func() {
-			klog.Info("Creating statefulset...")
+			log.Info("Creating statefulset...")
 			cmd := exec.Command("kubectl", "apply", "--wait=true", "-f", "manifests/statefulset.yaml")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -75,7 +75,7 @@ var _ = Describe("ApplicationResource", func() {
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session.Out, 10).Should(gbytes.Say(".*pod.* met*"))
-			klog.Infof("Created statefulset")
+			log.Infof("Created statefulset")
 		})
 		It("Can fetch created StatefulSet", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Added StatefulSet: "web-sts"*`))
@@ -84,14 +84,14 @@ var _ = Describe("ApplicationResource", func() {
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
-				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
 			cachedResource, found := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
 			Expect(cachedResource).ShouldNot(BeNil())
 			Expect(found).Should(BeTrue())
 		})
 		It("Can deleted StatefulSets", func() {
-			klog.Info("Deleting statefulset...")
+			log.Info("Deleting statefulset...")
 			cmd := exec.Command("kubectl", "delete", "--wait=true", "-f", "manifests/statefulset.yaml")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -100,7 +100,7 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=delete", "--timeout=180s", "pod", "-l", "app=nginx,parent=sts")
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			klog.Info("Deleted statefulset.")
+			log.Info("Deleted statefulset.")
 		})
 		It("Can not find deleted StatefulSets", func() {
 			Eventually(session.Err, 20).Should(gbytes.Say(`.*Deleted StatefulSet: "web-sts"*`))
@@ -109,7 +109,7 @@ var _ = Describe("ApplicationResource", func() {
 			controllers.Cache.Flush()
 			err := controllers.InitializeCache()
 			if err != nil {
-				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
 			cachedResource, found := controllers.Cache.Get("ResourceType/default/StatefulSet/web-sts")
 			Expect(cachedResource).Should(BeNil())
@@ -118,7 +118,7 @@ var _ = Describe("ApplicationResource", func() {
 	})
 	Context("Namespace tests", Ordered, func() {
 		BeforeAll(func() {
-			klog.Info("Creating resources in a labelled namespace...")
+			log.Info("Creating resources in a labelled namespace...")
 			cmd := exec.Command("kubectl", "apply", "--wait=true", "-Rf", "manifests/labeled-ns/")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -144,11 +144,11 @@ var _ = Describe("ApplicationResource", func() {
 			controllers.Cache.Flush()
 			err = controllers.InitializeCache()
 			if err != nil {
-				klog.Fatalf("Error rebuilding cache: %s", err.Error())
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
 			}
 		})
 		AfterAll(func() {
-			klog.Info("Cleaning up resources in a labelled namespace...")
+			log.Info("Cleaning up resources in a labelled namespace...")
 			cmd := exec.Command("kubectl", "delete", "--wait=true", "-Rf", "manifests/labeled-ns/")
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())

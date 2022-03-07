@@ -4,9 +4,9 @@ import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"k8s.io/klog/v2"
 	"os"
 	"strconv"
 	"time"
@@ -15,18 +15,18 @@ import (
 func BootstrapModel() error {
 	yamlFile, err := ioutil.ReadFile("bootstrap_models.yaml")
 	if err != nil {
-		klog.Errorf("yamlFile.Get err #%v ", err)
+		log.Errorf("yamlFile.Get err #%v ", err)
 		return err
 	}
 	model := ModelRequest{}
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 		return err
 	}
 	err = yaml.Unmarshal(yamlFile, &model)
 
 	if err != nil {
-		klog.Errorf("Unmarshal: %v", err)
+		log.Errorf("Unmarshal: %v", err)
 		return err
 	}
 	requestStarted := time.Now()
@@ -34,7 +34,7 @@ func BootstrapModel() error {
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error getting workspace: %s", err)
+		log.Errorf("Error getting workspace: %s", err)
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
@@ -45,7 +45,7 @@ func BootstrapModel() error {
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error getting model: %s", err)
+		log.Errorf("Error getting model: %s", err)
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
@@ -53,7 +53,7 @@ func BootstrapModel() error {
 	model.ID = currentModel.ID
 	err = UpdateModel(componentModel, model)
 	if err != nil {
-		klog.Errorf("Error updating model: %s", err)
+		log.Errorf("Error updating model: %s", err)
 		return err
 	}
 
@@ -62,17 +62,17 @@ func BootstrapModel() error {
 func BootstrapFields() error {
 	yamlFile, err := ioutil.ReadFile("bootstrap_fields.yaml")
 	if err != nil {
-		klog.Errorf("yamlFile.Get err #%v ", err)
+		log.Errorf("yamlFile.Get err #%v ", err)
 		return err
 	}
 	var fields []FieldRequest
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 		return err
 	}
 	err = yaml.Unmarshal(yamlFile, &fields)
 	if err != nil {
-		klog.Errorf("Unmarshal: %v", err)
+		log.Errorf("Unmarshal: %v", err)
 		return err
 	}
 	requestStarted := time.Now()
@@ -80,7 +80,7 @@ func BootstrapFields() error {
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error getting workspace: %s", err)
+		log.Errorf("Error getting workspace: %s", err)
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
@@ -88,7 +88,7 @@ func BootstrapFields() error {
 	componentModel := workspace.ComponentModel
 	err = CreateFields(componentModel, fields)
 	if err != nil {
-		klog.Errorf("Error updating Fields: %s", err)
+		log.Errorf("Error updating Fields: %s", err)
 		return err
 	}
 	return nil
@@ -99,7 +99,7 @@ func InitializeCache() error {
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error fetching components %s: %s", err)
+		log.Errorf("Error fetching components %s: %s", err)
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()

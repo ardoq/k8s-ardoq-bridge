@@ -3,7 +3,7 @@ package ardoq_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
-	"k8s.io/klog/v2"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"testing"
 
@@ -21,16 +21,16 @@ func TestArdoqController(t *testing.T) {
 var tempClusterName = helper.RandomString(5) + "-adq-" + os.Getenv("ARDOQ_CLUSTER")
 
 var _ = BeforeSuite(func() {
-	klog.Info("Initializing")
+	log.Info("Initializing")
 	err := os.Setenv("ARDOQ_CLUSTER", tempClusterName)
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 	}
-	klog.Infof("Cluster to be used: %q", tempClusterName)
-	klog.Info("Initializing Complete")
+	log.Infof("Cluster to be used: %s", tempClusterName)
+	log.Info("Initializing Complete")
 })
 
 var _ = AfterSuite(func() {
 	_ = controllers.GenericDelete("Cluster", tempClusterName)
-	klog.Info("Cleanup Complete...Terminating!!")
+	log.Info("Cleanup Complete...Terminating!!")
 })

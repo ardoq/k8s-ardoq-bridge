@@ -8,8 +8,8 @@ import (
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/klog/v2"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,12 +29,12 @@ var (
 )
 
 var _ = BeforeSuite(func() {
-	klog.Info("Initializing")
+	log.Info("Initializing")
 	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-k8s-"+os.Getenv("ARDOQ_CLUSTER"))
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 	}
-	klog.Infof("Creating cluster: %q", os.Getenv("ARDOQ_CLUSTER"))
+	log.Infof("Creating cluster: %s", os.Getenv("ARDOQ_CLUSTER"))
 
 	publisherPath, err := gexec.Build("../../../main.go")
 	Expect(err).NotTo(HaveOccurred())
@@ -51,17 +51,17 @@ var _ = BeforeSuite(func() {
 	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
 	Eventually(session.Err, 20).Should(gbytes.Say(`.*successfully acquired lease.*`))
 	controllers.ApplyDelay(5)
-	klog.Info("Initializing Complete")
+	log.Info("Initializing Complete")
 })
 
 var _ = AfterSuite(func() {
-	klog.Info("Cleanup")
+	log.Info("Cleanup")
 	//cleanup cluster in ardoq
 	cleanupCluster()
 	//cleanup running binary
 	session.Kill()
 	gexec.CleanupBuildArtifacts()
-	klog.Info("Cleanup Complete...Terminating!!")
+	log.Info("Cleanup Complete...Terminating!!")
 })
 
 func cleanupCluster() {
@@ -72,13 +72,13 @@ func cleanupCluster() {
 	}
 	cluster, err := a.Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: os.Getenv("ARDOQ_WORKSPACE_ID"), Name: os.Getenv("ARDOQ_CLUSTER")})
 	if err != nil {
-		klog.Errorf("Error fetching cluster %s: %s", err)
+		log.Errorf("Error fetching clusters: %s", err)
 	}
 
 	for _, v := range *cluster {
 		err = a.Components().Delete(context.TODO(), v.ID)
 		if err != nil {
-			klog.Errorf("Error deleting Cluster : %s", v.Name, err)
+			log.Errorf("Error deleting cluster %s: %s", v.Name, err)
 
 		}
 	}

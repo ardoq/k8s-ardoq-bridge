@@ -3,9 +3,9 @@ package subscriptions
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/lib/subscription"
+	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
-	"k8s.io/klog/v2"
 )
 
 type NodeSubscriber struct {
@@ -25,7 +25,7 @@ func (NodeSubscriber) WithEventType() []watch.EventType {
 func (d NodeSubscriber) OnEvent(msg subscription.Message) {
 	res := msg.Event.Object.(*v1.Node)
 	if res.Name == "" {
-		klog.Errorf("Unable to retrieve Node from incoming event")
+		log.Errorf("Unable to retrieve Node from incoming event")
 		return
 	}
 	d.BridgeDataProvider.OnNodeEvent(msg.Event, res)
