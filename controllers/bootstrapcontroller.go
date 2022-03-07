@@ -99,7 +99,7 @@ func InitializeCache() error {
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		log.Errorf("Error fetching components %s: %s", err)
+		log.Errorf("Error fetching components: %s", err)
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
