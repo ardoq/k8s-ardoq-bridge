@@ -30,12 +30,12 @@ import (
 	"context"
 	"flag"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"k8s.io/klog/v2"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -54,44 +54,42 @@ var (
 )
 
 func main() {
-
-	klog.InitFlags(nil)
 	flag.Parse()
 
 	if leaseLockName == "" {
-		klog.Fatal("unable to get lease lock resource name (missing lease-lock-name flag).")
+		log.Fatal("unable to get lease lock resource name (missing lease-lock-name flag).")
 	}
 	if leaseLockNamespace == "" {
-		klog.Fatal("unable to get lease lock resource namespace (missing lease-lock-namespace flag).")
+		log.Fatal("unable to get lease lock resource namespace (missing lease-lock-namespace flag).")
 	}
 
 	start := time.Now()
-	klog.Infof("Starting @ %s", start.String())
+	log.Infof("Starting @ %s", start.String())
 
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 
-		klog.Fatal(http.ListenAndServe(*addr, nil))
+		log.Fatal(http.ListenAndServe(*addr, nil))
 	}()
 	go func() {
-		klog.Error(http.ListenAndServe(":7777", http.DefaultServeMux))
+		log.Error(http.ListenAndServe(":7777", http.DefaultServeMux))
 	}()
 
-	klog.Info("Got watcher client...")
+	log.Info("Got watcher client...")
 
 	cfg, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfig)
 	if err != nil {
-		klog.Fatalf("Error building kubeconfig: %s", err.Error())
+		log.Fatalf("Error building kubeconfig: %s", err.Error())
 	}
 
-	klog.Info("Built config from flags...")
+	log.Info("Built config from flags...")
 
 	kubeClient, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		klog.Fatalf("Error building watcher clientset: %s", err.Error())
+		log.Fatalf("Error building watcher clientset: %s", err.Error())
 	}
 	controllers.ClientSet = kubeClient
-	klog.Info("Created new KubeConfig")
+	log.Info("Created new KubeConfig")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	c := make(chan os.Signal, 1)
@@ -110,37 +108,37 @@ func main() {
 	//Initialise the Model in Ardoq
 	err = controllers.BootstrapModel()
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 		return
 	}
-	klog.Info("Initialized the Model")
+	log.Info("Initialized the Model")
 	//Initialise the Custom Fields
 	err = controllers.BootstrapFields()
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 		return
 	}
-	klog.Info("Initialised Custom Fields")
+	log.Info("Initialised Custom Fields")
 
 	//initialize the cache
 	err = controllers.InitializeCache()
 	if err != nil {
-		klog.Fatalf("Error building cache: %s", err.Error())
+		log.Fatalf("Error building cache: %s", err.Error())
 	}
-	klog.Info("Cache initialized")
+	log.Info("Cache initialized")
 
 	//initialise cluster
 	if os.Getenv("ARDOQ_CLUSTER") == "" {
-		klog.Fatalf("ARDOQ_CLUSTER is a required environment variable")
+		log.Fatalf("ARDOQ_CLUSTER is a required environment variable")
 	}
 	controllers.LookupCluster(os.Getenv("ARDOQ_CLUSTER"))
-	klog.Info("Initialised cluster in Ardoq")
+	log.Info("Initialised cluster in Ardoq")
 
 	//start Resource/Node Consumers
 	go controllers.ResourceConsumer()
 	go controllers.NodeConsumer()
 
-	klog.Info("Starting event buffer...")
+	log.Info("Starting event buffer...")
 
 	lock := &resourcelock.LeaseLock{
 		LeaseMeta: metav1.ObjectMeta{
@@ -179,12 +177,12 @@ func main() {
 						kubeClient.CoreV1().Nodes(),
 					})
 				if err != nil {
-					klog.Error(err)
+					log.Error(err)
 				}
 			},
 			OnStoppedLeading: func() {
 				// we can do cleanup here
-				klog.Infof("leader lost: %s", id)
+				log.Infof("leader lost: %s", id)
 				os.Exit(0)
 			},
 			OnNewLeader: func(identity string) {
@@ -193,7 +191,7 @@ func main() {
 					// I just got the lock
 					return
 				}
-				klog.Infof("new leader elected: %s", identity)
+				log.Infof("new leader elected: %s", identity)
 			},
 		},
 	})
@@ -201,6 +199,13 @@ func main() {
 }
 
 func init() {
+	if os.Getenv("ENVIRONMENT") == "production" {
+		log.SetFormatter(&log.JSONFormatter{})
+	} else if os.Getenv("ENVIRONMENT") == "debug" {
+		log.SetFormatter(&log.JSONFormatter{})
+		log.SetReportCaller(true)
+	}
+
 	hostname, _ := os.Hostname()
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")

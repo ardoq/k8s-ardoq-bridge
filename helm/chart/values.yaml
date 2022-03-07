@@ -57,6 +57,7 @@ affinity: {}
 
 podAnnotations: {}
 
+environment: production
 ardoq:
   baseUri: ""
   org: ""

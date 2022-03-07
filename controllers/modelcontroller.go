@@ -4,7 +4,7 @@ import (
 	"K8SArdoqBridge/app/lib/metrics"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -20,7 +20,7 @@ func UpdateModel(id string, model ModelRequest) error {
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Error(err)
+		log.Error(err)
 		return errors.Wrap(err, "could not get model")
 	}
 	if errResponse.NotOk() {

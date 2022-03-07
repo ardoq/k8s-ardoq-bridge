@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog/v2"
 	"reflect"
 	"strings"
 	"time"
@@ -43,7 +43,7 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 	if strings.HasSuffix(resourceType, "Deployment") {
 		res := genericResource.(v1.Deployment)
 		if res.Name == "" {
-			klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+			log.Errorf("Unable to retrieve %s from incoming event", resourceType)
 			return
 		}
 		resource = Resource{
@@ -60,7 +60,7 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 	} else if strings.HasSuffix(resourceType, "StatefulSet") {
 		res := genericResource.(v1.StatefulSet)
 		if res.Name == "" {
-			klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+			log.Errorf("Unable to retrieve %s from incoming event", resourceType)
 			return
 		}
 		resource = Resource{
@@ -75,7 +75,7 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Project:           res.Labels["ardoq/project"],
 		}
 	} else {
-		klog.Errorf("Invalid type: %s", resourceType)
+		log.Errorf("Invalid type: %s", resourceType)
 		return
 	}
 	switch event.Type {
@@ -99,7 +99,7 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 	resourceType := "Node"
 	if res.Name == "" {
-		klog.Errorf("Unable to retrieve %s from incoming event", resourceType)
+		log.Errorf("Unable to retrieve %s from incoming event", resourceType)
 		return
 	}
 	node := Node{

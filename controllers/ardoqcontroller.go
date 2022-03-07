@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
-	"k8s.io/klog/v2"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
 )
@@ -43,7 +43,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 		os.Exit(1)
 	}
 	component := ardoq.ComponentRequest{
@@ -104,7 +104,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
-			klog.Errorf("Error creating %s: %s", resourceType, err)
+			log.Errorf("Error creating %s: %s", resourceType, err)
 		}
 		metrics.RequestStatusCode.WithLabelValues("success").Inc()
 		componentId = cmp.ID
@@ -121,7 +121,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			PersistToCache("ResourceType/"+resourceType+"/"+name, node)
 			break
 		}
-		klog.Infof("Added %s: %q: %s", resourceType, component.Name, componentId)
+		log.Infof("Added %s: %s: %s", resourceType, component.Name, componentId)
 		return componentId
 	}
 	switch resourceType {
@@ -151,10 +151,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error updating %s|%s: %s", resourceType, name, err)
+		log.Errorf("Error updating %s|%s: %s", resourceType, name, err)
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
-	klog.Infof("Updated %s: %q: %s", resourceType, component.Name, componentId)
+	log.Infof("Updated %s: %s: %s", resourceType, component.Name, componentId)
 	return componentId
 }
 func GenericDelete(resourceType string, genericResource interface{}) error {
@@ -189,7 +189,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	}
 
 	if err != nil {
-		klog.Error(err)
+		log.Error(err)
 	}
 	if componentId == "" {
 		return errors.New("resource not found")
@@ -199,7 +199,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error deleting %s|%s : %s", resourceType, name, err)
+		log.Errorf("Error deleting %s|%s : %s", resourceType, name, err)
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
@@ -211,6 +211,6 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 		Cache.Delete("ResourceType/" + resourceType + "/" + name)
 		break
 	}
-	klog.Infof("Deleted %s: %q", resourceType, name)
+	log.Infof("Deleted %s: %s", resourceType, name)
 	return nil
 }

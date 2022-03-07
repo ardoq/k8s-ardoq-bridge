@@ -11,7 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	k "k8s.io/client-go/kubernetes"
-	"k8s.io/klog/v2"
 	"sync"
 	"time"
 )
@@ -39,11 +38,11 @@ func EventBuffer(context context.Context, client k.Interface,
 			switch {
 			case err == io.EOF:
 				// watch closed normally
-				klog.Infof("closed with EOF")
+				log.Infof("closed with EOF")
 			case err == io.ErrUnexpectedEOF:
-				klog.Infof("closed with unexpected EOF")
+				log.Infof("closed with unexpected EOF")
 			}
-			klog.Error(err)
+			log.Error(err)
 		}
 		watchers = append(watchers, w.ResultChan())
 	}
@@ -67,24 +66,24 @@ func EventBuffer(context context.Context, client k.Interface,
 								Client: client,
 							})
 							if err != nil {
-								klog.Error(err)
+								log.Error(err)
 								return err
 							}
 							metrics.TotalEventOps.Inc()
 						}
 						if !hasUpdate {
 							// the channel got closed, so we need to restart
-							klog.Error("Kubernetes hung up on us, restarting event watcher")
+							log.Error("Kubernetes hung up on us, restarting event watcher")
 						}
 						//case <-time.After(30 * time.Minute):
 						//	// deal with the issue where we get no events
-						//	klog.Fatal("Timeout, restarting event watcher")
+						//	log.Fatal("Timeout, restarting event watcher")
 					}
 					counter++
 				}
 			}(x, o)
 			if err != nil {
-				klog.Error(err)
+				log.Error(err)
 			}
 		}()
 	}

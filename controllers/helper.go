@@ -6,8 +6,8 @@ import (
 	"fmt"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	goCache "github.com/patrickmn/go-cache"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog/v2"
 	"os"
 	"time"
 )
@@ -63,7 +63,7 @@ func lookUpTypeId(name string) string {
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error getting workspace: %s", err)
+		log.Errorf("Error getting workspace: %s", err)
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
@@ -73,7 +73,7 @@ func lookUpTypeId(name string) string {
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		klog.Errorf("Error getting model: %s", err)
+		log.Errorf("Error getting model: %s", err)
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	cmpTypes := model.GetComponentTypeID()

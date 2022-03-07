@@ -4,7 +4,7 @@ import (
 	"K8SArdoqBridge/app/lib/metrics"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"github.com/pkg/errors"
-	"k8s.io/klog/v2"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -23,7 +23,7 @@ func CreateFields(id string, fields []FieldRequest) error {
 			continue
 		} else if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
-			klog.Error(err)
+			log.Error(err)
 			return errors.Wrap(err, "could not create field")
 		}
 		if errResponse.NotOk() {
