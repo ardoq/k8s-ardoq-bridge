@@ -77,6 +77,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		component.Fields = map[string]interface{}{
 			"node_architecture":        node.Architecture,
 			"node_container_runtime":   node.ContainerRuntime,
+			"node_instance_type":       node.InstanceType,
 			"node_kernel_version":      node.KernelVersion,
 			"node_kubelet_version":     node.KubeletVersion,
 			"node_kube_proxy_version":  node.KubeProxyVersion,
@@ -90,6 +91,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			"node_allocatable_memory":  node.Allocatable.Memory,
 			"node_allocatable_storage": node.Allocatable.Storage,
 			"node_allocatable_pods":    node.Allocatable.Pods,
+			"node_pool":                node.Pool,
 			"node_provider":            node.Provider,
 			"node_creation_timestamp":  node.CreationTimestamp,
 			"node_zone":                node.Zone,
