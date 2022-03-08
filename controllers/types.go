@@ -25,11 +25,13 @@ type Node struct {
 	Capacity          NodeResources
 	Allocatable       NodeResources
 	ContainerRuntime  string
+	InstanceType      string
 	KernelVersion     string
 	KubeletVersion    string
 	KubeProxyVersion  string
 	OperatingSystem   string
 	OSImage           string
+	Pool              string
 	Provider          string
 	CreationTimestamp string
 	Region            string

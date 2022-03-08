@@ -126,3 +126,11 @@ func PersistToCache(name string, value interface{}) {
 	Cache.Set(name, value, goCache.NoExpiration)
 	metrics.CachePersists.Inc()
 }
+func GetNodePool(nodeLabels map[string]string) string {
+	if nodeLabels["kubernetes.azure.com/agentpool"] != "" {
+		return nodeLabels["kubernetes.azure.com/agentpool"]
+	} else if nodeLabels["eks.amazonaws.com/nodegroup"] != "" {
+		return nodeLabels["eks.amazonaws.com/nodegroup"]
+	}
+	return ""
+}
