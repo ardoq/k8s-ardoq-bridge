@@ -1,8 +1,6 @@
 [![Build](https://github.com/ardoq/k8s-ardoq-bridge/actions/workflows/build.yml/badge.svg)](https://github.com/ardoq/k8s-ardoq-bridge/actions/workflows/build.yml)
 [![Release](https://github.com/ardoq/k8s-ardoq-bridge/actions/workflows/release.yml/badge.svg)](https://github.com/ardoq/k8s-ardoq-bridge/actions/workflows/release.yml)
 
-# K8s-Ardoq Bridge
-
 ## What is this?
 
 The project captures data on application resources and nodes running in a Kubernetes cluster and continuously syncs the current state and select information into Ardoq as part of the application hosting Model. The project runs as a lightweight operator in your cluster, watching the resources and ensuring the data in your Ardoq workspace is constantly updated.
