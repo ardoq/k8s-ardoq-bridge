@@ -58,7 +58,6 @@ jobs:
     name: Run tests
     needs:
       - verify-code
-      - test-helm-chart
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     timeout-minutes: 15
