@@ -15,7 +15,7 @@ The project captures data on application resources and nodes running in a Kubern
 **Remote Helm repository**
 Add and update the helm repository
 ```shell
-helm repo add ardoq https://raw.githubusercontent.com/ardoq/k8s-ardoq-bridge/main/helm/
+helm repo add ardoq https://ardoq.github.io/k8s-ardoq-bridge
 helm repo update
 ```
 Ensure repository is now available in your repo list
