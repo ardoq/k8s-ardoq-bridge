@@ -3,7 +3,7 @@
 # by creating an annotated Git tag and pushing it to the upstream Git repository.
 #
 # ./release.sh {patch|minor|major}
-name: Release
+name: Release Source
 on:
   push:
     tags:
