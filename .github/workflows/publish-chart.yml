@@ -1,0 +1,84 @@
+---
+# This workflow is triggered whenever we release a new version of Starboard
+# by creating an annotated Git tag and pushing it to the upstream Git repository.
+#
+name: Publish Chart
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm/**'
+      - 'CHART_VERSION'
+    tags-ignore:
+      - "*"
+  workflow_dispatch:
+
+env:
+  KIND_VERSION: "v0.11.1"
+  CHART_DIR: helm/chart
+
+jobs:
+  test-helm-chart:
+    name: Test Helm Chart
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v2.0
+        with:
+          version: v3.5.0
+      - name: Set up python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.7
+      - name: Setup Chart Linting
+        id: lint
+        uses: helm/chart-testing-action@v2.2.1
+      #      - name: Setup Kubernetes cluster (KIND)
+      #        uses: helm/kind-action@v1.2.0
+      #        with:
+      #          version: ${{ env.KIND_VERSION }}
+      #          cluster_name: kind-test
+      #      - name: Test connection to Kubernetes cluster
+      #        run: |
+      #          kubectl cluster-info
+      #          kubectl wait --for=condition=Ready nodes --all --timeout=300s
+      #          kubectl describe node
+      - name: Run chart-testing
+        run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
+  publish:
+    name: Release Helm Chart
+    needs:
+      - test-helm-chart
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - id: package
+        name: Package charts
+        run: |
+          helm package ${{ env.CHART_DIR }}
+          git add *.tgz
+          if git diff --quiet --cached; then
+            echo "There is no new package"
+            exit 1
+          fi
+      - name: Checkout gh-pages
+        run: |
+          git fetch origin gh-pages
+          git switch -c gh-pages FETCH_HEAD
+      - name: Update index
+        run: |
+          URL="https://${{ github.repository_owner }}.github.io/k8s-ardoq-bridge"
+          helm repo index --url "$URL" . --merge index.yaml
+      - name: Commit
+        run: |
+          ADDED_FILE="$(git status --porcelain | grep '^A' | cut -c4- | sed 's/\.tgz$//')"
+          git add index.yaml
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git commit -m "Updated chart index: ${ADDED_FILE}"
+      - run: git push origin gh-pages
