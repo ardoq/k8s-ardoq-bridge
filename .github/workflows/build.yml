@@ -9,6 +9,7 @@ on:
       - 'docs/**'
       - 'helm/**'
       - 'CHART_VERSION'
+      - '*.sh'
     tags-ignore:
       - "*"
   pull_request:
@@ -19,6 +20,7 @@ on:
       - 'docs/**'
       - 'helm/**'
       - 'CHART_VERSION'
+      - '*.sh'
   workflow_dispatch:
 
 env:
