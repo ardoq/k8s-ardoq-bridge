@@ -1,4 +1,4 @@
-name: Build
+name: Build Source
 
 on:
   push:
@@ -7,20 +7,25 @@ on:
     paths-ignore:
       - '*.md'
       - 'docs/**'
+      - 'helm/**'
+      - 'CHART_VERSION'
+      - '*.sh'
     tags-ignore:
       - "*"
   pull_request:
     branches:
       - main
     paths-ignore:
-        - '*.md'
-        - 'docs/**'
+      - '*.md'
+      - 'docs/**'
+      - 'helm/**'
+      - 'CHART_VERSION'
+      - '*.sh'
   workflow_dispatch:
 
 env:
   GO_VERSION: "1.17"
   KIND_VERSION: "v0.11.1"
-  CHART_DIR: helm/chart
 
 jobs:
   verify-code:
@@ -49,42 +54,10 @@ jobs:
           skip-build-cache: true
       - name: Vendor Go modules
         run: go mod vendor
-  test-helm-chart:
-    name: Test Helm Chart
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Helm
-        uses: azure/setup-helm@v2.0
-        with:
-          version: v3.5.0
-      - name: Set up python
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.7
-      - name: Setup Chart Linting
-        id: lint
-        uses: helm/chart-testing-action@v2.2.1
-#      - name: Setup Kubernetes cluster (KIND)
-#        uses: helm/kind-action@v1.2.0
-#        with:
-#          version: ${{ env.KIND_VERSION }}
-#          cluster_name: kind-test
-#      - name: Test connection to Kubernetes cluster
-#        run: |
-#          kubectl cluster-info
-#          kubectl wait --for=condition=Ready nodes --all --timeout=300s
-#          kubectl describe node
-      - name: Run chart-testing
-        run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
   tests:
     name: Run tests
     needs:
       - verify-code
-      - test-helm-chart
     runs-on: ubuntu-20.04
     environment: "GITHUB CI"
     timeout-minutes: 15
