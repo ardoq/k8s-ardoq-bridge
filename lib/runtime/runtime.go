@@ -72,7 +72,7 @@ func EventBuffer(context context.Context, client k.Interface,
 							metrics.TotalEventOps.Inc()
 						} else {
 							// the channel got closed, so we need to restart
-							log.Error("Kubernetes hung up on us, restarting event watcher")
+							log.Error("Kubernetes hung up on us, exiting!")
 							os.Exit(1)
 						}
 						//case <-time.After(30 * time.Minute):
