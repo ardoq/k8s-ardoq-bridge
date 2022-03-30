@@ -83,11 +83,11 @@
   type: Number
   componentType: ["Deployment", "StatefulSet"]
 - label: "Resource Requests Memory"
-  type: Number
+  type: Text
   componentType: ["Deployment", "StatefulSet"]
 - label: "Resource Limits CPU"
   type: Number
   componentType: ["Deployment", "StatefulSet"]
 - label: "Resource Limits Memory"
-  type: Number
+  type: Text
   componentType: ["Deployment", "StatefulSet"]
