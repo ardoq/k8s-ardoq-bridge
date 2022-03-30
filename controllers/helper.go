@@ -7,8 +7,11 @@ import (
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	goCache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
+	v12 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -131,6 +134,37 @@ func GetNodePool(nodeLabels map[string]string) string {
 		return nodeLabels["kubernetes.azure.com/agentpool"]
 	} else if nodeLabels["eks.amazonaws.com/nodegroup"] != "" {
 		return nodeLabels["eks.amazonaws.com/nodegroup"]
+	}
+	return ""
+}
+func GetContainerImages(containers []v12.Container) string {
+	values := make([]string, 0, len(containers))
+	for _, v := range containers {
+		values = append(values, v.Image)
+	}
+	return strings.Join(values, ",")
+}
+func GetAppResourceRequirements(containers []v12.Container, resourcetype string) AppResources {
+	parsedAppResources := AppResources{}
+	var rawMemory int64 = 0
+	switch resourcetype {
+	case "limits":
+		for _, v := range containers {
+			parsedAppResources.CPU += v.Resources.Limits.Cpu().AsApproximateFloat64()
+			rawMemory += v.Resources.Limits.Memory().Value()
+		}
+	case "requests":
+		for _, v := range containers {
+			parsedAppResources.CPU += v.Resources.Requests.Cpu().AsApproximateFloat64()
+			rawMemory += v.Resources.Requests.Memory().Value()
+		}
+	}
+	parsedAppResources.Memory = ParseToMB(rawMemory)
+	return parsedAppResources
+}
+func ParseToMB(val int64) string {
+	if val > 0 {
+		return strconv.FormatInt(val/(1000*1000), 10) + "M"
 	}
 	return ""
 }

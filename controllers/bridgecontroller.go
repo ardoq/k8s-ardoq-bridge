@@ -30,13 +30,6 @@ type BridgeController struct {
 	KubeClient *kubernetes.Clientset
 }
 
-func GetContainerImages(containers []v12.Container) string {
-	values := make([]string, 0, len(containers))
-	for _, v := range containers {
-		values = append(values, v.Image)
-	}
-	return strings.Join(values, ",")
-}
 func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, genericResource interface{}) {
 	resourceType := reflect.TypeOf(genericResource).String()
 	resource := Resource{}
