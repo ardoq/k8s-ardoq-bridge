@@ -69,6 +69,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			"resource_stack":              resource.Stack,
 			"resource_team":               resource.Team,
 			"resource_project":            resource.Project,
+			"resource_requests_cpu":       resource.Requests.CPU,
+			"resource_requests_memory":    resource.Requests.Memory,
+			"resource_limits_cpu":         resource.Limits.CPU,
+			"resource_limits_memory":      resource.Limits.Memory,
 		}
 		componentId = LookupResource(resource.Namespace, resourceType, name)
 		break

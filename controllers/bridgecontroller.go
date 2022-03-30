@@ -49,6 +49,8 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Stack:             res.Labels["ardoq/stack"],
 			Team:              res.Labels["ardoq/team"],
 			Project:           res.Labels["ardoq/project"],
+			Requests:          GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "requests"),
+			Limits:            GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "limits"),
 		}
 	} else if strings.HasSuffix(resourceType, "StatefulSet") {
 		res := genericResource.(v1.StatefulSet)
@@ -66,6 +68,8 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Stack:             res.Labels["ardoq/stack"],
 			Team:              res.Labels["ardoq/team"],
 			Project:           res.Labels["ardoq/project"],
+			Requests:          GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "requests"),
+			Limits:            GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "limits"),
 		}
 	} else {
 		log.Errorf("Invalid type: %s", resourceType)
