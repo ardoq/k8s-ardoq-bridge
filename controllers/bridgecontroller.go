@@ -104,14 +104,14 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		Architecture: res.Status.NodeInfo.Architecture,
 		Capacity: NodeResources{
 			CPU:     res.Status.Capacity.Cpu().Value(),
-			Memory:  res.Status.Capacity.Memory().String(),
-			Storage: res.Status.Capacity.StorageEphemeral().String(),
+			Memory:  ParseToMB(res.Status.Capacity.Memory().Value()),
+			Storage: ParseToMB(res.Status.Capacity.StorageEphemeral().Value()),
 			Pods:    res.Status.Capacity.Pods().Value(),
 		},
 		Allocatable: NodeResources{
 			CPU:     res.Status.Allocatable.Cpu().Value(),
-			Memory:  res.Status.Allocatable.Memory().String(),
-			Storage: res.Status.Allocatable.StorageEphemeral().String(),
+			Memory:  ParseToMB(res.Status.Allocatable.Memory().Value()),
+			Storage: ParseToMB(res.Status.Allocatable.StorageEphemeral().Value()),
 			Pods:    res.Status.Allocatable.Pods().Value(),
 		},
 		ContainerRuntime:  res.Status.NodeInfo.ContainerRuntimeVersion,
