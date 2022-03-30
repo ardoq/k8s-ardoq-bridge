@@ -1,5 +1,9 @@
 package controllers
 
+type AppResources struct {
+	CPU    float64
+	Memory string
+}
 type Resource struct {
 	ID                string
 	Name              string
@@ -11,6 +15,8 @@ type Resource struct {
 	Stack             string
 	Team              string
 	Project           string
+	Requests          AppResources
+	Limits            AppResources
 }
 type NodeResources struct {
 	CPU     int64
