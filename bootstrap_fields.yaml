@@ -79,3 +79,15 @@
 - label: "Resource Team"
   type: Text
   componentType: ["Deployment", "StatefulSet"]
+- label: "Resource Requests CPU"
+  type: Number
+  componentType: ["Deployment", "StatefulSet"]
+- label: "Resource Requests Memory"
+  type: Text
+  componentType: ["Deployment", "StatefulSet"]
+- label: "Resource Limits CPU"
+  type: Number
+  componentType: ["Deployment", "StatefulSet"]
+- label: "Resource Limits Memory"
+  type: Text
+  componentType: ["Deployment", "StatefulSet"]

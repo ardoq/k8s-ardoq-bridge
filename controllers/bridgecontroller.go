@@ -30,13 +30,6 @@ type BridgeController struct {
 	KubeClient *kubernetes.Clientset
 }
 
-func GetContainerImages(containers []v12.Container) string {
-	values := make([]string, 0, len(containers))
-	for _, v := range containers {
-		values = append(values, v.Image)
-	}
-	return strings.Join(values, ",")
-}
 func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, genericResource interface{}) {
 	resourceType := reflect.TypeOf(genericResource).String()
 	resource := Resource{}
@@ -56,6 +49,8 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Stack:             res.Labels["ardoq/stack"],
 			Team:              res.Labels["ardoq/team"],
 			Project:           res.Labels["ardoq/project"],
+			Requests:          GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "requests"),
+			Limits:            GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "limits"),
 		}
 	} else if strings.HasSuffix(resourceType, "StatefulSet") {
 		res := genericResource.(v1.StatefulSet)
@@ -73,6 +68,8 @@ func (b *BridgeController) OnApplicationResourceEvent(event watch.Event, generic
 			Stack:             res.Labels["ardoq/stack"],
 			Team:              res.Labels["ardoq/team"],
 			Project:           res.Labels["ardoq/project"],
+			Requests:          GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "requests"),
+			Limits:            GetAppResourceRequirements(res.Spec.Template.Spec.Containers, "limits"),
 		}
 	} else {
 		log.Errorf("Invalid type: %s", resourceType)
@@ -107,14 +104,14 @@ func (b *BridgeController) OnNodeEvent(event watch.Event, res *v12.Node) {
 		Architecture: res.Status.NodeInfo.Architecture,
 		Capacity: NodeResources{
 			CPU:     res.Status.Capacity.Cpu().Value(),
-			Memory:  res.Status.Capacity.Memory().String(),
-			Storage: res.Status.Capacity.StorageEphemeral().String(),
+			Memory:  ParseToMB(res.Status.Capacity.Memory().Value()),
+			Storage: ParseToMB(res.Status.Capacity.StorageEphemeral().Value()),
 			Pods:    res.Status.Capacity.Pods().Value(),
 		},
 		Allocatable: NodeResources{
 			CPU:     res.Status.Allocatable.Cpu().Value(),
-			Memory:  res.Status.Allocatable.Memory().String(),
-			Storage: res.Status.Allocatable.StorageEphemeral().String(),
+			Memory:  ParseToMB(res.Status.Allocatable.Memory().Value()),
+			Storage: ParseToMB(res.Status.Allocatable.StorageEphemeral().Value()),
 			Pods:    res.Status.Allocatable.Pods().Value(),
 		},
 		ContainerRuntime:  res.Status.NodeInfo.ContainerRuntimeVersion,
