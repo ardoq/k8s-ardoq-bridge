@@ -30,7 +30,7 @@ root:
             level: 3
             children: { }
           p119:
-            name: AppResCommon
+            name: SharedResourceComponent
             id: "p119"
             icon: "wrench"
             returnsValue: true
@@ -44,7 +44,7 @@ root:
         level: 2
         children:
           p129:
-            name: NodeCommon
+            name: SharedNodeComponent
             id: "p129"
             icon: "wrench"
             returnsValue: true
