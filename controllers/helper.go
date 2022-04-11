@@ -168,3 +168,39 @@ func ParseToMB(val int64) string {
 	}
 	return ""
 }
+func (r *Resource) Link(linkType string, target string) (string, error) {
+	reference, err := ardRestClient().References().Create(context.TODO(),
+		ardoq.ReferenceRequest{
+			Description:     linkType,
+			DisplayText:     linkType,
+			RootWorkspace:   workspaceId,
+			Source:          r.ID,
+			Target:          target,
+			TargetWorkspace: workspaceId,
+			Type:            2,
+		})
+	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
+		log.Errorf("Error getting model: %s", err)
+		return "", err
+	}
+	return reference.ID, nil
+}
+func (n *Node) Link(linkType string, target string) (string, error) {
+	reference, err := ardRestClient().References().Create(context.TODO(),
+		ardoq.ReferenceRequest{
+			Description:     linkType,
+			DisplayText:     linkType,
+			RootWorkspace:   workspaceId,
+			Source:          n.ID,
+			Target:          target,
+			TargetWorkspace: workspaceId,
+			Type:            2,
+		})
+	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
+		log.Errorf("Error getting model: %s", err)
+		return "", err
+	}
+	return reference.ID, nil
+}
