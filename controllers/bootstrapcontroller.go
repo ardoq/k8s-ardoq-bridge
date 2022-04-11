@@ -175,6 +175,28 @@ func InitializeCache() error {
 			PersistToCache("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource)
 		}
 	}
+	for _, v := range *components {
+		if Contains([]string{"SharedResourceComponent", "SharedNodeComponent"}, v.Type) {
+			PersistToCache(v.Type+"/"+v.Fields["shared_category"].(string)+"/"+strings.ToLower(v.Name), v.ID)
+		}
+	}
+	requestStarted = time.Now()
+	references, err := ardRestClient().References().GetAll(context.TODO())
+	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
+	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
+		log.Errorf("Error fetching references: %s", err)
+		return err
+	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
+	for _, v := range *references {
+		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
+			PersistToCache("SharedResourceLinks/"+v.Source+"/"+v.Target, v.ID)
+		}
+		if Contains(NodeLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
+			PersistToCache("SharedNodeLinks/"+v.Source+"/"+v.Target, v.ID)
+		}
+	}
 	return nil
 }
 func getNamespace(namespaceComponents []ardoq.Component, id string) string {
