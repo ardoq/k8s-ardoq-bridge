@@ -29,10 +29,24 @@ root:
             returnsValue: true
             level: 3
             children: { }
+          p119:
+            name: AppResCommon
+            id: "p119"
+            icon: "wrench"
+            returnsValue: true
+            level: 3
+            children: {}
       p12:
         name: Node
         id: "p12"
         icon: "server"
         returnsValue: true
         level: 2
-        children: { }
+        children:
+          p129:
+            name: NodeCommon
+            id: "p129"
+            icon: "wrench"
+            returnsValue: true
+            level: 3
+            children: {}
