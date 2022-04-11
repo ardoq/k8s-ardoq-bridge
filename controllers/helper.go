@@ -168,39 +168,85 @@ func ParseToMB(val int64) string {
 	}
 	return ""
 }
-func (r *Resource) Link(linkType string, target string) (string, error) {
-	reference, err := ardRestClient().References().Create(context.TODO(),
-		ardoq.ReferenceRequest{
-			Description:     linkType,
-			DisplayText:     linkType,
-			RootWorkspace:   workspaceId,
-			Source:          r.ID,
-			Target:          target,
-			TargetWorkspace: workspaceId,
-			Type:            2,
-		})
-	if err != nil {
-		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		log.Errorf("Error getting model: %s", err)
-		return "", err
+
+func GenericLookupSharedComponents(resourceType string, category string, name string) string {
+	if cachedResource, found := GetFromCache("Shared" + resourceType + "Component/" + category + "/" + strings.ToLower(name)); found {
+		return cachedResource.(string)
 	}
-	return reference.ID, nil
+	return ""
 }
-func (n *Node) Link(linkType string, target string) (string, error) {
-	reference, err := ardRestClient().References().Create(context.TODO(),
-		ardoq.ReferenceRequest{
-			Description:     linkType,
-			DisplayText:     linkType,
-			RootWorkspace:   workspaceId,
-			Source:          n.ID,
-			Target:          target,
-			TargetWorkspace: workspaceId,
-			Type:            2,
-		})
-	if err != nil {
-		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		log.Errorf("Error getting model: %s", err)
-		return "", err
+func GenericUpsertSharedComponents(resourceType string, category string, name string) string {
+	if name == "" {
+		return ""
 	}
-	return reference.ID, nil
+	component := ardoq.ComponentRequest{
+		Name:          strings.ToLower(name),
+		RootWorkspace: workspaceId,
+		TypeID:        lookUpTypeId("Shared" + resourceType + "Component"),
+		Fields: map[string]interface{}{
+			"shared_category": category,
+		},
+	}
+	componentId := GenericLookupSharedComponents(resourceType, category, name)
+	if componentId == "" {
+		requestStarted := time.Now()
+		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
+		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
+			log.Errorf("Error creating Shared Components: %s", err)
+		}
+		metrics.RequestStatusCode.WithLabelValues("success").Inc()
+		componentId = cmp.ID
+		PersistToCache("Shared"+resourceType+"Component/"+category+"/"+strings.ToLower(name), componentId)
+		log.Infof("Added Shared Component:%s: %s: %s", resourceType, component.Name, componentId)
+		return componentId
+	}
+	return componentId
+}
+
+func (r *Resource) Link(linkType string, target string) {
+	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + target); !found && target != "" {
+		reference, err := ardRestClient().References().Create(context.TODO(),
+			ardoq.ReferenceRequest{
+				Description:     linkType,
+				DisplayText:     linkType,
+				RootWorkspace:   workspaceId,
+				Source:          r.ID,
+				Target:          target,
+				TargetWorkspace: workspaceId,
+				Type:            2,
+			})
+		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
+			log.Errorf("Error linking resource to a shared component: %s", err)
+		}
+		if reference.ID != "" {
+			PersistToCache("SharedResourceLinks/"+r.ID+"/"+target, reference.ID)
+		}
+	}
+
+}
+func (n *Node) Link(linkType string, target string) {
+	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + target); !found && target != "" {
+		reference, err := ardRestClient().References().Create(context.TODO(),
+			ardoq.ReferenceRequest{
+				Description:     linkType,
+				DisplayText:     linkType,
+				RootWorkspace:   workspaceId,
+				Source:          n.ID,
+				Target:          target,
+				TargetWorkspace: workspaceId,
+				Type:            2,
+			})
+		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
+			log.Errorf("Error linking node to a shared component: %s", err)
+
+		}
+		if reference.ID != "" {
+			PersistToCache("SharedNodeLinks/"+n.ID+"/"+target, reference.ID)
+		}
+	}
+
 }
