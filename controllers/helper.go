@@ -183,6 +183,7 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 		Name:          strings.ToLower(name),
 		RootWorkspace: workspaceId,
 		TypeID:        lookUpTypeId("Shared" + resourceType + "Component"),
+		Parent:        LookupCluster(os.Getenv("ARDOQ_CLUSTER")),
 		Fields: map[string]interface{}{
 			"shared_category": category,
 		},

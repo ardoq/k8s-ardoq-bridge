@@ -176,7 +176,7 @@ func InitializeCache() error {
 		}
 	}
 	for _, v := range *components {
-		if Contains([]string{"SharedResourceComponent", "SharedNodeComponent"}, v.Type) {
+		if Contains([]string{"SharedResourceComponent", "SharedNodeComponent"}, v.Type) && v.Parent == clusterComponent.ID {
 			PersistToCache(v.Type+"/"+v.Fields["shared_category"].(string)+"/"+strings.ToLower(v.Name), v.ID)
 		}
 	}
