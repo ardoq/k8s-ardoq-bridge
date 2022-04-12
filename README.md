@@ -118,10 +118,10 @@ The interface is based on the Ardoq Rest API as documented in the Swagger docs.
 Sure thing, all contributions are very welcome; improvements and optimisations even more.
 
 ### How?
-We have a contribution guideline available under the docs [Contribution Guideline](./docs/CONTRIBUTING.md) and [Development](./docs/DEVELOPMENT.md)
+We have a contribution guideline available under the docs [Contribution Guideline](/docs/CONTRIBUTING.md) and [Development](/docs/DEVELOPMENT.md)
 
 ## Any more details?
-Yes. A lot more available in: [Documentation](./docs)
+Yes. A lot more available in: [Documentation](https://github.com/ardoq/k8s-ardoq-bridge/tree/main/docs)
 
 # Shoutouts(Built on top of previous work by):
 - https://github.com/mories76/ardoq-client-go

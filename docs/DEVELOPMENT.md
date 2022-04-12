@@ -63,4 +63,4 @@ go tool pprof http://localhost:7777/debug/pprof/profile
 
 Remember D.R.Y. and K.I.S.S
 
-`#StaySmartlyLazy`
+`#StayLazy`

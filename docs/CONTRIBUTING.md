@@ -28,4 +28,4 @@ Below we have highlighted some guidelines on contributing,hope it helps, and a b
 
 The more, the merrier, let's make it a party!
 
-`#StaySmartlyLazy`
+`#StayLazy`
