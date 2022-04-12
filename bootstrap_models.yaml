@@ -35,7 +35,7 @@ root:
             icon: "wrench"
             returnsValue: true
             level: 3
-            children: {}
+            children: { }
       p12:
         name: Node
         id: "p12"
@@ -49,4 +49,4 @@ root:
             icon: "wrench"
             returnsValue: true
             level: 3
-            children: {}
+            children: { }
