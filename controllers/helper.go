@@ -205,48 +205,55 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 	}
 	return componentId
 }
-
-func (r *Resource) Link(linkType string, target string) {
-	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + target); !found && target != "" {
-		reference, err := ardRestClient().References().Create(context.TODO(),
-			ardoq.ReferenceRequest{
-				Description:     linkType,
-				DisplayText:     linkType,
-				RootWorkspace:   workspaceId,
-				Source:          r.ID,
-				Target:          target,
-				TargetWorkspace: workspaceId,
-				Type:            2,
-			})
+func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
+	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
+		referenceLink := ardoq.ReferenceRequest{
+			Description:     linkType,
+			DisplayText:     linkType,
+			RootWorkspace:   workspaceId,
+			TargetWorkspace: workspaceId,
+			Type:            2,
+			Source:          compId,
+			Target:          r.ID,
+		}
+		if !(len(reverse) > 0 && reverse[0]) {
+			referenceLink.Source = r.ID
+			referenceLink.Target = compId
+		}
+		reference, err := ardRestClient().References().Create(context.TODO(), referenceLink)
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error linking resource to a shared component: %s", err)
 		}
 		if reference.ID != "" {
-			PersistToCache("SharedResourceLinks/"+r.ID+"/"+target, reference.ID)
+			PersistToCache("SharedResourceLinks/"+r.ID+"/"+compId, reference.ID)
 		}
 	}
 
 }
-func (n *Node) Link(linkType string, target string) {
-	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + target); !found && target != "" {
-		reference, err := ardRestClient().References().Create(context.TODO(),
-			ardoq.ReferenceRequest{
-				Description:     linkType,
-				DisplayText:     linkType,
-				RootWorkspace:   workspaceId,
-				Source:          n.ID,
-				Target:          target,
-				TargetWorkspace: workspaceId,
-				Type:            2,
-			})
+func (n *Node) Link(linkType string, compId string, reverse ...bool) {
+	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + compId); !found && compId != "" {
+		referenceLink := ardoq.ReferenceRequest{
+			Description:     linkType,
+			DisplayText:     linkType,
+			RootWorkspace:   workspaceId,
+			TargetWorkspace: workspaceId,
+			Type:            2,
+			Source:          compId,
+			Target:          n.ID,
+		}
+		if !(len(reverse) > 0 && reverse[0]) {
+			referenceLink.Source = n.ID
+			referenceLink.Target = compId
+		}
+		reference, err := ardRestClient().References().Create(context.TODO(), referenceLink)
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error linking node to a shared component: %s", err)
 
 		}
 		if reference.ID != "" {
-			PersistToCache("SharedNodeLinks/"+n.ID+"/"+target, reference.ID)
+			PersistToCache("SharedNodeLinks/"+n.ID+"/"+compId, reference.ID)
 		}
 	}
 

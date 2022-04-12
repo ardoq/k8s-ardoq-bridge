@@ -16,7 +16,7 @@ var (
 	org                           = os.Getenv("ARDOQ_ORG")
 	workspaceId                   = os.Getenv("ARDOQ_WORKSPACE_ID")
 	validApplicationResourceTypes = []string{"Deployment", "StatefulSet"}
-	ApplicationLinks              = []string{"RUNS_ON", "OWNED_BY", "SUPPORTED_BY"}
+	ApplicationLinks              = []string{"Owns", "Is realized By", "Is Supported By"}
 	NodeLinks                     = []string{"LOCATION", "SUB_LOCATION", "ARCHITECTURE", "INSTANCE_TYPE", "OS", "NODE_POOL"}
 )
 
@@ -114,9 +114,9 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		case "Deployment", "StatefulSet":
 			resource.ID = componentId
 			PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
-			resource.Link("OWNED_BY", GenericUpsertSharedComponents("Resource", "team", resource.Team))
-			resource.Link("RUNS_ON", GenericUpsertSharedComponents("Resource", "stack", resource.Stack))
-			resource.Link("SUPPORTED_BY", GenericUpsertSharedComponents("Resource", "project", resource.Project))
+			resource.Link("Owns", GenericUpsertSharedComponents("Resource", "team", resource.Team), true)
+			resource.Link("Is realized By", GenericUpsertSharedComponents("Resource", "stack", resource.Stack))
+			resource.Link("Is Supported By", GenericUpsertSharedComponents("Resource", "project", resource.Project))
 			break
 		case "Node":
 			node.ID = componentId
@@ -145,9 +145,9 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			return componentId
 		}
 		PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
-		resource.Link("OWNED_BY", GenericUpsertSharedComponents("Resource", "team", resource.Team))
-		resource.Link("RUNS_ON", GenericUpsertSharedComponents("Resource", "stack", resource.Stack))
-		resource.Link("SUPPORTED_BY", GenericUpsertSharedComponents("Resource", "project", resource.Project))
+		resource.Link("Owns", GenericUpsertSharedComponents("Resource", "team", resource.Team), true)
+		resource.Link("Is realized By", GenericUpsertSharedComponents("Resource", "stack", resource.Stack))
+		resource.Link("Is Supported By", GenericUpsertSharedComponents("Resource", "project", resource.Project))
 		break
 	case "Node":
 		node.ID = componentId
