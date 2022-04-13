@@ -32,6 +32,21 @@ var _ = BeforeSuite(func() {
 	if err != nil {
 		log.Fatalf("Error building cache: %s", err.Error())
 	}
+	//Initialise the Model in Ardoq
+	err = controllers.BootstrapModel()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	log.Info("Initialized the Model")
+
+	//Initialise the Custom Fields
+	err = controllers.BootstrapFields()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	log.Info("Initialised Custom Fields")
 	log.Info("Initializing Complete")
 })
 
