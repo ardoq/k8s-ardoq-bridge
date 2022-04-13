@@ -175,6 +175,7 @@ func InitializeCache() error {
 			PersistToCache("ResourceType/"+resource.Namespace+"/"+v.Type+"/"+v.Name, resource)
 		}
 	}
+	//get shared components
 	for _, v := range *components {
 		if Contains([]string{"SharedResourceComponent", "SharedNodeComponent"}, v.Type) {
 			PersistToCache(v.Type+"/"+v.Fields["shared_category"].(string)+"/"+strings.ToLower(v.Name), v.ID)
@@ -189,6 +190,7 @@ func InitializeCache() error {
 		return err
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
+	//get shared references
 	for _, v := range *references {
 		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
 			PersistToCache("SharedResourceLinks/"+v.Description, v.ID)
