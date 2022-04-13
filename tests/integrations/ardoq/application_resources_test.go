@@ -64,9 +64,7 @@ var _ = Describe("Deployments", Ordered, func() {
 			err := controllers.GenericDelete("Namespace", namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_ = controllers.GenericDeleteSharedComponents("Resource", "team", deploy.Team)
-			_ = controllers.GenericDeleteSharedComponents("Resource", "stack", deploy.Stack)
-			_ = controllers.GenericDeleteSharedComponents("Resource", "project", deploy.Project)
+			helper.CleanupSharedComponents("Resource")
 			log.Info("Cleaned up shared deployment components")
 
 		})
@@ -177,9 +175,7 @@ var _ = Describe("StatefulSets", Ordered, func() {
 			err := controllers.GenericDelete("Namespace", namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_ = controllers.GenericDeleteSharedComponents("Resource", "team", sts.Team)
-			_ = controllers.GenericDeleteSharedComponents("Resource", "stack", sts.Stack)
-			_ = controllers.GenericDeleteSharedComponents("Resource", "project", sts.Project)
+			helper.CleanupSharedComponents("Resource")
 			log.Info("Cleaned up shared deployment components")
 		})
 		It("Can create StatefulSet", func() {

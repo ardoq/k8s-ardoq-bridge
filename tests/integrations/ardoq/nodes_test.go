@@ -88,8 +88,7 @@ var _ = Describe("Nodes", Ordered, func() {
 	Context("Node to Ardoq Integration tests", Ordered, func() {
 		var compId string
 		AfterAll(func() {
-			_ = controllers.GenericDeleteSharedComponents("Node", "node_os", node.OperatingSystem)
-			_ = controllers.GenericDeleteSharedComponents("Node", "architecture", node.Architecture)
+			helper.CleanupSharedComponents("Node")
 			log.Info("Cleaned up shared node components")
 		})
 		It("Can create Node", func() {
