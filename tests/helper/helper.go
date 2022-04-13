@@ -1,7 +1,9 @@
 package helper
 
 import (
+	"K8SArdoqBridge/app/controllers"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -17,4 +19,14 @@ func RandomString(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+func CleanupSharedComponents(resourceType string) {
+	controllers.Cache.Flush()
+	_ = controllers.InitializeCache()
+	for k := range controllers.Cache.Items() {
+		if strings.HasPrefix(k, "Shared"+resourceType+"Component") {
+			s := strings.Split(k, "/")
+			_ = controllers.GenericDeleteSharedComponents(resourceType, s[1], s[2])
+		}
+	}
 }
