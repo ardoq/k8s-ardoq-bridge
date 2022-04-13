@@ -27,10 +27,16 @@ var _ = BeforeSuite(func() {
 		log.Error(err)
 	}
 	log.Infof("Cluster to be used: %s", tempClusterName)
+	controllers.Cache.Flush()
+	err = controllers.InitializeCache()
+	if err != nil {
+		log.Fatalf("Error building cache: %s", err.Error())
+	}
 	log.Info("Initializing Complete")
 })
 
 var _ = AfterSuite(func() {
 	_ = controllers.GenericDelete("Cluster", tempClusterName)
+	controllers.Cache.Flush()
 	log.Info("Cleanup Complete...Terminating!!")
 })

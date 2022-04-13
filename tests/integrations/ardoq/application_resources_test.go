@@ -5,7 +5,9 @@ import (
 	"K8SArdoqBridge/app/tests/helper"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 	"time"
 )
 
@@ -54,23 +56,63 @@ var _ = Describe("Deployments", Ordered, func() {
 		})
 	})
 	Context("Deployment Ardoq Bridge tests", Ordered, func() {
+		var compId string
 		BeforeAll(func() {
 			controllers.GenericUpsert("Namespace", namespace)
 		})
 		AfterAll(func() {
 			err := controllers.GenericDelete("Namespace", namespace)
 			Expect(err).ShouldNot(HaveOccurred())
-			if err != nil {
-				return
-			}
+
+			_ = controllers.GenericDeleteSharedComponents("Resource", "team", deploy.Team)
+			_ = controllers.GenericDeleteSharedComponents("Resource", "stack", deploy.Stack)
+			_ = controllers.GenericDeleteSharedComponents("Resource", "project", deploy.Project)
+			log.Info("Cleaned up shared deployment components")
+
 		})
 		It("Can create Deployment", func() {
-			deploy.ID = controllers.GenericUpsert("Deployment", *deploy)
-			Expect(deploy.ID).ShouldNot(BeNil())
+			compId = controllers.GenericUpsert("Deployment", *deploy)
+			Expect(compId).ShouldNot(BeNil())
 		})
 		It("Can Update Deployment", func() {
 			deploy.Replicas += 1
 			Expect(controllers.GenericUpsert("Deployment", *deploy)).ShouldNot(BeNil())
+		})
+		It("Shared deployment components created", func() {
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, found := controllers.Cache.Get("SharedResourceComponent/team/" + strings.ToLower(deploy.Team))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceComponent/project/" + strings.ToLower(deploy.Project))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceComponent/stack/" + strings.ToLower(deploy.Stack))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+		})
+		It("Shared deployment components links created", func() {
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, found := controllers.Cache.Get("SharedResourceLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Resource", "team", deploy.Team))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Resource", "project", deploy.Project))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Resource", "stack", deploy.Stack))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can Delete Deployment", func() {
 			Expect(controllers.GenericDelete("Deployment", *deploy)).Should(BeNil())
@@ -127,19 +169,58 @@ var _ = Describe("StatefulSets", Ordered, func() {
 		})
 	})
 	Context("StatefulSet Ardoq Bridge tests", Ordered, func() {
+		var compId string
 		BeforeAll(func() {
 			controllers.GenericUpsert("Namespace", namespace)
 		})
 		AfterAll(func() {
 			err := controllers.GenericDelete("Namespace", namespace)
 			Expect(err).ShouldNot(HaveOccurred())
-			if err != nil {
-				return
-			}
+
+			_ = controllers.GenericDeleteSharedComponents("Resource", "team", sts.Team)
+			_ = controllers.GenericDeleteSharedComponents("Resource", "stack", sts.Stack)
+			_ = controllers.GenericDeleteSharedComponents("Resource", "project", sts.Project)
+			log.Info("Cleaned up shared deployment components")
 		})
 		It("Can create StatefulSet", func() {
-			sts.ID = controllers.GenericUpsert("StatefulSet", *sts)
-			Expect(sts.ID).ShouldNot(BeNil())
+			compId = controllers.GenericUpsert("StatefulSet", *sts)
+			Expect(compId).ShouldNot(BeNil())
+		})
+		It("Shared deployment components created", func() {
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, found := controllers.Cache.Get("SharedResourceComponent/team/" + strings.ToLower(sts.Team))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceComponent/project/" + strings.ToLower(sts.Project))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceComponent/stack/" + strings.ToLower(sts.Stack))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+		})
+		It("Shared deployment components links created", func() {
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, found := controllers.Cache.Get("SharedResourceLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Resource", "team", sts.Team))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Resource", "project", sts.Project))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedResourceLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Resource", "stack", sts.Stack))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can Update StatefulSet", func() {
 			sts.Replicas += 1

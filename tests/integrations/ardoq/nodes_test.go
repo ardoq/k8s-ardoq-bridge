@@ -5,7 +5,9 @@ import (
 	"K8SArdoqBridge/app/tests/helper"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 	"time"
 )
 
@@ -83,9 +85,44 @@ var _ = Describe("Nodes", Ordered, func() {
 		})
 
 	})
-	Context("Node Ardoq Link tests", Ordered, func() {
+	Context("Node to Ardoq Integration tests", Ordered, func() {
+		var compId string
+		AfterAll(func() {
+			_ = controllers.GenericDeleteSharedComponents("Node", "node_os", node.OperatingSystem)
+			_ = controllers.GenericDeleteSharedComponents("Node", "architecture", node.Architecture)
+			log.Info("Cleaned up shared node components")
+		})
 		It("Can create Node", func() {
-			Expect(controllers.GenericUpsert("Node", *node)).ShouldNot(BeNil())
+			compId = controllers.GenericUpsert("Node", *node)
+			Expect(compId).ShouldNot(BeNil())
+		})
+		It("Shared node components created", func() {
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, found := controllers.Cache.Get("SharedNodeComponent/node_os/" + strings.ToLower(node.OperatingSystem))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedNodeComponent/architecture/" + strings.ToLower(node.Architecture))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+		})
+		It("Shared node components links created", func() {
+			controllers.Cache.Flush()
+			err := controllers.InitializeCache()
+			if err != nil {
+				log.Fatalf("Error rebuilding cache: %s", err.Error())
+			}
+			cachedResource, found := controllers.Cache.Get("SharedNodeLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Node", "node_os", node.OperatingSystem))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
+
+			cachedResource, found = controllers.Cache.Get("SharedNodeLinks/" + compId + "/" + controllers.GenericUpsertSharedComponents("Node", "architecture", node.Architecture))
+			Expect(cachedResource).ShouldNot(BeNil())
+			Expect(found).Should(BeTrue())
 		})
 		It("Can Update Node", func() {
 			node.KernelVersion = "5.10.76-linuxkit-2"
