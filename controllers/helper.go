@@ -3,6 +3,7 @@ package controllers
 import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"context"
+	"errors"
 	"fmt"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	goCache "github.com/patrickmn/go-cache"
@@ -204,6 +205,25 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 	}
 	return componentId
 }
+func GenericDeleteSharedComponents(resourceType string, category string, name string) error {
+	var err error
+	componentId := GenericLookupSharedComponents(resourceType, category, name)
+	if componentId == "" {
+		return errors.New("resource not found")
+	}
+	requestStarted := time.Now()
+	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
+	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
+		log.Errorf("Error deleting Shared%sComponent|%s : %s", resourceType, name, err)
+		return err
+	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
+	Cache.Delete("Shared" + resourceType + "Component/" + category + "/" + strings.ToLower(name))
+	log.Infof("Deleted Shared%sComponent: %s", resourceType, name)
+	return nil
+}
 func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ardoq.ReferenceRequest{
@@ -257,9 +277,3 @@ func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 	}
 
 }
-
-//func parse_link(input string) string {
-//	output := strings.ReplaceAll(input, " ", "_")
-//	output = strings.ToLower(output)
-//	return output
-//}
