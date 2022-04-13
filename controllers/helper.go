@@ -207,7 +207,6 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ardoq.ReferenceRequest{
-			Description:     linkType,
 			DisplayText:     linkType,
 			RootWorkspace:   workspaceId,
 			TargetWorkspace: workspaceId,
@@ -215,6 +214,7 @@ func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 			Source:          compId,
 			Target:          r.ID,
 		}
+		referenceLink.Description = r.ID + "/" + compId
 		if !(len(reverse) > 0 && reverse[0]) {
 			referenceLink.Source = r.ID
 			referenceLink.Target = compId
@@ -233,7 +233,6 @@ func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ardoq.ReferenceRequest{
-			Description:     linkType,
 			DisplayText:     linkType,
 			RootWorkspace:   workspaceId,
 			TargetWorkspace: workspaceId,
@@ -241,6 +240,7 @@ func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 			Source:          compId,
 			Target:          n.ID,
 		}
+		referenceLink.Description = n.ID + "/" + compId
 		if !(len(reverse) > 0 && reverse[0]) {
 			referenceLink.Source = n.ID
 			referenceLink.Target = compId
@@ -257,3 +257,9 @@ func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 	}
 
 }
+
+//func parse_link(input string) string {
+//	output := strings.ReplaceAll(input, " ", "_")
+//	output = strings.ToLower(output)
+//	return output
+//}

@@ -191,10 +191,10 @@ func InitializeCache() error {
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	for _, v := range *references {
 		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
-			PersistToCache("SharedResourceLinks/"+v.Source+"/"+v.Target, v.ID)
+			PersistToCache("SharedResourceLinks/"+v.Description, v.ID)
 		}
 		if Contains(NodeLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
-			PersistToCache("SharedNodeLinks/"+v.Source+"/"+v.Target, v.ID)
+			PersistToCache("SharedNodeLinks/"+v.Description, v.ID)
 		}
 	}
 	return nil
