@@ -1,0 +1,52 @@
+name: "Kubernetes Model"
+description: "A kubernetes hosting model"
+root:
+  p1:
+    name: Cluster
+    id: "p1"
+    icon: "cloud"
+    returnsValue: true
+    level: 1
+    children:
+      p11:
+        name: Namespace
+        id: "p11"
+        icon: "sitemap"
+        returnsValue: true
+        level: 2
+        children:
+          p111:
+            name: Deployment
+            id: "p111"
+            icon: "cogs"
+            returnsValue: true
+            level: 3
+            children: { }
+          p112:
+            name: StatefulSet
+            id: "p112"
+            icon: "hdd-o"
+            returnsValue: true
+            level: 3
+            children: { }
+      p12:
+        name: Node
+        id: "p12"
+        icon: "server"
+        returnsValue: true
+        level: 2
+        children: { }
+  p8:
+    name: SharedResourceComponent
+    id: "p8"
+    icon: "wrench"
+    returnsValue: true
+    level: 1
+    children: { }
+  p9:
+    name: SharedNodeComponent
+    id: "p9"
+    icon: "wrench"
+    returnsValue: true
+    level: 1
+    children: { }
