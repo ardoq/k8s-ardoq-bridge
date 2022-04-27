@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dghubble/sling"
+	"github.com/go-resty/resty/v2"
 	"github.com/mitchellh/mapstructure"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"io"
@@ -85,4 +86,7 @@ func client() *sling.Sling {
 		Set("User-Agent", fmt.Sprintf("%s (%s)", UserAgentPrefix, Version)).
 		Set("Authorization", fmt.Sprintf("Token token=%s", apiKey)).ResponseDecoder(ardoqDecoder{}).
 		QueryStruct(&OrgSearchQuery{Org: org})
+}
+func RestyClient() *resty.Request {
+	return resty.New().R().SetAuthToken(apiKey).SetQueryParam("org", org)
 }
