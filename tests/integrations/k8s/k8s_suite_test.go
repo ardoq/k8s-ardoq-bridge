@@ -56,10 +56,15 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	log.Info("Cleanup")
+	//Cleanup shared components
+	helper.CleanupSharedComponents("Resource")
+	helper.CleanupSharedComponents("Node")
+
 	//cleanup cluster in ardoq
 	cleanupCluster()
-	//cleanup running binary
+	//kill the running session
 	session.Kill()
+	//cleanup running binary
 	gexec.CleanupBuildArtifacts()
 	log.Info("Cleanup Complete...Terminating!!")
 })

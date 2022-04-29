@@ -3,6 +3,7 @@ package controllers
 import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"context"
+	"errors"
 	"fmt"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	goCache "github.com/patrickmn/go-cache"
@@ -167,4 +168,112 @@ func ParseToMB(val int64) string {
 		return strconv.FormatInt(val/(1000*1000), 10) + "M"
 	}
 	return ""
+}
+
+func GenericLookupSharedComponents(resourceType string, category string, name string) string {
+	if cachedResource, found := GetFromCache("Shared" + resourceType + "Component/" + category + "/" + strings.ToLower(name)); found {
+		return cachedResource.(string)
+	}
+	return ""
+}
+func GenericUpsertSharedComponents(resourceType string, category string, name string) string {
+	if name == "" {
+		return ""
+	}
+	component := ardoq.ComponentRequest{
+		Name:          strings.ToLower(name),
+		RootWorkspace: workspaceId,
+		TypeID:        lookUpTypeId("Shared" + resourceType + "Component"),
+		Fields: map[string]interface{}{
+			"shared_category": category,
+		},
+	}
+	componentId := GenericLookupSharedComponents(resourceType, category, name)
+	if componentId == "" {
+		requestStarted := time.Now()
+		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
+		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
+			log.Errorf("Error creating Shared Components: %s", err)
+		}
+		metrics.RequestStatusCode.WithLabelValues("success").Inc()
+		componentId = cmp.ID
+		PersistToCache("Shared"+resourceType+"Component/"+category+"/"+strings.ToLower(name), componentId)
+		log.Infof("Added Shared Component:%s: %s: %s", resourceType, component.Name, componentId)
+		return componentId
+	}
+	return componentId
+}
+func GenericDeleteSharedComponents(resourceType string, category string, name string) error {
+	var err error
+	componentId := GenericLookupSharedComponents(resourceType, category, name)
+	if componentId == "" {
+		return errors.New("resource not found")
+	}
+	requestStarted := time.Now()
+	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
+	if err != nil {
+		metrics.RequestStatusCode.WithLabelValues("error").Inc()
+		log.Errorf("Error deleting Shared%sComponent|%s : %s", resourceType, name, err)
+		return err
+	}
+	metrics.RequestStatusCode.WithLabelValues("success").Inc()
+	Cache.Delete("Shared" + resourceType + "Component/" + category + "/" + strings.ToLower(name))
+	log.Infof("Deleted Shared%sComponent: %s", resourceType, name)
+	return nil
+}
+func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
+	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
+		referenceLink := ardoq.ReferenceRequest{
+			DisplayText:     linkType,
+			RootWorkspace:   workspaceId,
+			TargetWorkspace: workspaceId,
+			Type:            2,
+			Source:          compId,
+			Target:          r.ID,
+		}
+		referenceLink.Description = r.ID + "/" + compId
+		if !(len(reverse) > 0 && reverse[0]) {
+			referenceLink.Source = r.ID
+			referenceLink.Target = compId
+		}
+		reference, err := ardRestClient().References().Create(context.TODO(), referenceLink)
+		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
+			log.Errorf("Error linking resource to a shared component: %s", err)
+		}
+		if reference.ID != "" {
+			PersistToCache("SharedResourceLinks/"+r.ID+"/"+compId, reference.ID)
+		}
+	}
+
+}
+func (n *Node) Link(linkType string, compId string, reverse ...bool) {
+	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + compId); !found && compId != "" {
+		referenceLink := ardoq.ReferenceRequest{
+			DisplayText:     linkType,
+			RootWorkspace:   workspaceId,
+			TargetWorkspace: workspaceId,
+			Type:            2,
+			Source:          compId,
+			Target:          n.ID,
+		}
+		referenceLink.Description = n.ID + "/" + compId
+		if !(len(reverse) > 0 && reverse[0]) {
+			referenceLink.Source = n.ID
+			referenceLink.Target = compId
+		}
+		reference, err := ardRestClient().References().Create(context.TODO(), referenceLink)
+		if err != nil {
+			metrics.RequestStatusCode.WithLabelValues("error").Inc()
+			log.Errorf("Error linking node to a shared component: %s", err)
+
+		}
+		if reference.ID != "" {
+			PersistToCache("SharedNodeLinks/"+n.ID+"/"+compId, reference.ID)
+		}
+	}
+
 }

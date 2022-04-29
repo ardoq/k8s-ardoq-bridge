@@ -36,3 +36,17 @@ root:
         returnsValue: true
         level: 2
         children: { }
+  p8:
+    name: SharedResourceComponent
+    id: "p8"
+    icon: "wrench"
+    returnsValue: true
+    level: 1
+    children: { }
+  p9:
+    name: SharedNodeComponent
+    id: "p9"
+    icon: "wrench"
+    returnsValue: true
+    level: 1
+    children: { }
