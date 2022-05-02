@@ -116,3 +116,47 @@ type ComponentRequest struct {
 	TypeID        interface{}            `json:"typeId,omitempty"`
 	Fields        map[string]interface{} `json:"-"`
 }
+type Reference struct {
+	Ardoq struct {
+		EntityType             string      `json:"entity-type"`
+		IncomingReferenceCount int         `json:"incomingReferenceCount"`
+		OutgoingReferenceCount int         `json:"outgoingReferenceCount"`
+		Persistent             interface{} `json:"persistent"`
+	} `json:"ardoq"`
+	Created             string                 `json:"created"`
+	CreatedBy           string                 `json:"created-by"`
+	CreatedByEmail      string                 `json:"createdByEmail"`
+	CreatedByName       string                 `json:"createdByName"`
+	DisplayText         string                 `json:"displayText"`
+	Description         string                 `json:"description"`
+	ID                  string                 `json:"_id"`
+	LastUpdated2        string                 `json:"last-updated"`
+	LastModifiedBy      string                 `json:"last-modified-by"`
+	LastModifiedByName  string                 `json:"lastModifiedByName"`
+	LastModifiedByEmail string                 `json:"lastModifiedByEmail"`
+	LastUpdated         string                 `json:"lastupdated"`
+	Order               int                    `json:"order"`
+	RootWorkspace       string                 `json:"rootWorkspace"`
+	Source              string                 `json:"source"`
+	Target              string                 `json:"target"`
+	TargetWorkspace     string                 `json:"targetWorkspace"`
+	Type                int                    `json:"type"`
+	Model               string                 `json:"model"`
+	Version             int                    `json:"_version"`
+	Fields              map[string]interface{} `json:",remain"`
+}
+
+// ReferenceRequest is the payload for creating and updating a reference
+// Fields map has json tag "-" so that it doesn't get marshalled into JSON
+// the fields are being handled by the ardoqBodyProvider
+// URL: PATCH/POST /api/reference
+type ReferenceRequest struct {
+	Description     interface{}            `json:"description,omitempty"`
+	DisplayText     interface{}            `json:"displayText,omitempty"`
+	RootWorkspace   interface{}            `json:"rootWorkspace,omitempty"`
+	Source          interface{}            `json:"source,omitempty"`
+	Target          interface{}            `json:"target,omitempty"`
+	TargetWorkspace interface{}            `json:"targetWorkspace,omitempty"`
+	Type            interface{}            `json:"type,omitempty"`
+	Fields          map[string]interface{} `json:"-"`
+}

@@ -195,12 +195,12 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 			request: component,
 			fields:  component.Fields,
 		}.Body()).SetResult(&Component{}).Post("component")
-		cmp := resp.Result().(*Component)
 		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error creating Shared Components: %s", err)
 		}
+		cmp := resp.Result().(*Component)
 		metrics.RequestStatusCode.WithLabelValues("success").Inc()
 		componentId = cmp.ID
 		PersistToCache("Shared"+resourceType+"Component/"+category+"/"+strings.ToLower(name), componentId)
@@ -230,7 +230,7 @@ func GenericDeleteSharedComponents(resourceType string, category string, name st
 }
 func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
-		referenceLink := ardoq.ReferenceRequest{
+		referenceLink := ReferenceRequest{
 			DisplayText:     linkType,
 			RootWorkspace:   workspaceId,
 			TargetWorkspace: workspaceId,
@@ -243,11 +243,15 @@ func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 			referenceLink.Source = r.ID
 			referenceLink.Target = compId
 		}
-		reference, err := ardRestClient().References().Create(context.TODO(), referenceLink)
+		resp, err := RestyClient().SetBody(BodyProvider{
+			request: referenceLink,
+			fields:  referenceLink.Fields,
+		}.Body()).SetResult(&Reference{}).Post("reference")
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error linking resource to a shared component: %s", err)
 		}
+		reference := resp.Result().(*Reference)
 		if reference.ID != "" {
 			PersistToCache("SharedResourceLinks/"+r.ID+"/"+compId, reference.ID)
 		}
@@ -256,7 +260,7 @@ func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 }
 func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + compId); !found && compId != "" {
-		referenceLink := ardoq.ReferenceRequest{
+		referenceLink := ReferenceRequest{
 			DisplayText:     linkType,
 			RootWorkspace:   workspaceId,
 			TargetWorkspace: workspaceId,
@@ -269,12 +273,16 @@ func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 			referenceLink.Source = n.ID
 			referenceLink.Target = compId
 		}
-		reference, err := ardRestClient().References().Create(context.TODO(), referenceLink)
+		resp, err := RestyClient().SetBody(BodyProvider{
+			request: referenceLink,
+			fields:  referenceLink.Fields,
+		}.Body()).SetResult(&Reference{}).Post("reference")
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error linking node to a shared component: %s", err)
 
 		}
+		reference := resp.Result().(*Reference)
 		if reference.ID != "" {
 			PersistToCache("SharedNodeLinks/"+n.ID+"/"+compId, reference.ID)
 		}
