@@ -78,3 +78,41 @@ type FieldRequest struct {
 	Model         string   `json:"model"`
 	Type          string   `json:"type"`
 }
+type Component struct {
+	Ardoq struct {
+		EntityType             string      `json:"entity-type"`
+		Persistent             interface{} `json:"persistent"`
+		IncomingReferenceCount int         `json:"incomingReferenceCount"`
+		OutgoingReferenceCount int         `json:"outgoingReferenceCount"`
+	} `json:"ardoq"`
+	Children            []string               `json:"children"`
+	ComponentKey        string                 `json:"component-key"`
+	Created             string                 `json:"created"`
+	CreatedBy           string                 `json:"created-by"`
+	CreatedByEmail      string                 `json:"createdByEmail"`
+	CreatedByName       string                 `json:"createdByName"`
+	Description         string                 `json:"description"`
+	ID                  string                 `json:"_id"`
+	LastUpdated2        string                 `json:"last-updated"`
+	LastModifiedBy      string                 `json:"last-modified-by"`
+	LastModifiedByEmail string                 `json:"lastModifiedByEmail"`
+	LastModifiedByName  string                 `json:"lastModifiedByName"`
+	LastUpdated         string                 `json:"lastupdated"`
+	Model               string                 `json:"model"`
+	Name                string                 `json:"name"`
+	Order               float64                `json:"_order"`
+	Parent              interface{}            `json:"parent"`
+	RootWorkspace       string                 `json:"rootWorkspace"`
+	Type                string                 `json:"type"`
+	TypeID              string                 `json:"typeId"`
+	Version             int                    `json:"_version"`
+	Fields              map[string]interface{} `json:",remain"`
+}
+type ComponentRequest struct {
+	RootWorkspace string                 `json:"rootWorkspace,omitempty"`
+	Name          interface{}            `json:"name,omitempty"`
+	Description   interface{}            `json:"description,omitempty"`
+	Parent        interface{}            `json:"parent,omitempty"`
+	TypeID        interface{}            `json:"typeId,omitempty"`
+	Fields        map[string]interface{} `json:"-"`
+}
