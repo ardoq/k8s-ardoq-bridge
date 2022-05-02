@@ -3,7 +3,8 @@ package controllers
 import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"context"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -99,21 +100,25 @@ func BootstrapFields() error {
 }
 func InitializeCache() error {
 	requestStarted := time.Now()
-	components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
+	//components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
+	resp, err := RestyClient().SetQueryParam("workspace", workspaceId).Get("component/search")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error fetching components: %s", err)
 		return err
 	}
+	var components []Component
+	_ = mapstructure.WeakDecode(resp.Result(), &components)
+	spew.Dump(components)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get the current cluster
-	var clusterComponent ardoq.Component
-	var nodeComponents []ardoq.Component
-	var namespaceComponents []ardoq.Component
-	var resourceComponents []ardoq.Component
+	var clusterComponent Component
+	var nodeComponents []Component
+	var namespaceComponents []Component
+	var resourceComponents []Component
 	var namespaces []string
-	for _, v := range *components {
+	for _, v := range components {
 		if v.Type == "Cluster" && v.Name == os.Getenv("ARDOQ_CLUSTER") {
 			clusterComponent = v
 			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
@@ -123,7 +128,7 @@ func InitializeCache() error {
 		return nil
 	}
 	//get namespaces
-	for _, v := range *components {
+	for _, v := range components {
 		if v.Type == "Namespace" && v.Parent == clusterComponent.ID {
 			namespaceComponents = append(namespaceComponents, v)
 			namespaces = append(namespaces, v.ID)
@@ -131,7 +136,7 @@ func InitializeCache() error {
 		}
 	}
 	//get nodes
-	for _, v := range *components {
+	for _, v := range components {
 		if v.Type == "Node" && v.Parent == clusterComponent.ID {
 			nodeComponents = append(nodeComponents, v)
 			node := Node{
@@ -161,7 +166,7 @@ func InitializeCache() error {
 		}
 	}
 	//get application resources
-	for _, v := range *components {
+	for _, v := range components {
 		if Contains([]string{"Deployment", "StatefulSet"}, v.Type) && Contains(namespaces, v.Parent.(string)) {
 			resourceComponents = append(resourceComponents, v)
 			resource := Resource{
@@ -179,7 +184,7 @@ func InitializeCache() error {
 		}
 	}
 	//get shared components
-	for _, v := range *components {
+	for _, v := range components {
 		if Contains([]string{"SharedResourceComponent", "SharedNodeComponent"}, v.Type) {
 			PersistToCache(v.Type+"/"+v.Fields["shared_category"].(string)+"/"+strings.ToLower(v.Name), v.ID)
 		}
@@ -204,7 +209,7 @@ func InitializeCache() error {
 	}
 	return nil
 }
-func getNamespace(namespaceComponents []ardoq.Component, id string) string {
+func getNamespace(namespaceComponents []Component, id string) string {
 	for _, v := range namespaceComponents {
 		if v.ID == id {
 			return v.Name

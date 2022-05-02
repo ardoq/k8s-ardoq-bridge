@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/go-resty/resty/v2"
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"io"
 )
 
 func RestyClient() *resty.Request {
-	return resty.New().SetBaseURL(baseUri).
+	client := resty.New()
+	client.JSONUnmarshal = Decode
+	request := client.SetBaseURL(baseUri).
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 			"Accept":       "application/json",
@@ -17,6 +20,17 @@ func RestyClient() *resty.Request {
 		SetAuthToken(apiKey).
 		SetQueryParam("org", org).
 		SetError(new(HttpError))
+
+	return request
+}
+
+func Decode(resp []byte, v interface{}) error {
+	var data interface{}
+	err := json.Unmarshal(resp, &data)
+	if err != nil {
+		return err
+	}
+	return mapstructure.WeakDecode(data, v)
 }
 
 type BodyProvider struct {

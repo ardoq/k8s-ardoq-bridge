@@ -167,7 +167,7 @@ type Component struct {
 	Type                string                 `json:"type"`
 	TypeID              string                 `json:"typeId"`
 	Version             int                    `json:"_version"`
-	Fields              map[string]interface{} `json:",remain"`
+	Fields              map[string]interface{} `mapstructure:",remain"`
 }
 type ComponentRequest struct {
 	RootWorkspace string                 `json:"rootWorkspace,omitempty"`
@@ -204,7 +204,7 @@ type Reference struct {
 	Type                int                    `json:"type"`
 	Model               string                 `json:"model"`
 	Version             int                    `json:"_version"`
-	Fields              map[string]interface{} `json:",remain"`
+	Fields              map[string]interface{} `mapstructure:",remain"`
 }
 
 type ReferenceRequest struct {
