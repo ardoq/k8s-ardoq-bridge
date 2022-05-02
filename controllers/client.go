@@ -8,6 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/mitchellh/mapstructure"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -51,13 +52,11 @@ func (a ardoqDecoder) Decode(resp *http.Response, v interface{}) error {
 
 type ardoqBodyProvider struct {
 	request interface{}
-}
-
-func (a ardoqBodyProvider) ContentType() string {
-	return "application/json"
+	//fields  interface{}
 }
 
 func (a ardoqBodyProvider) Body() (io.Reader, error) {
+	// request := a.request.(ComponentRequest)
 
 	// marshal component
 	requestJSON, _ := json.Marshal(a.request)
@@ -69,6 +68,15 @@ func (a ardoqBodyProvider) Body() (io.Reader, error) {
 		return nil, err
 	}
 
+	//if len(a.fields.(map[string]interface{})) > 0 {
+	//	// marshal component.Fields
+	//	fieldsJSON, _ := json.Marshal(a.fields)
+	//	err = json.Unmarshal(fieldsJSON, &flatRequest)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+
 	buf := &bytes.Buffer{}
 	err = json.NewEncoder(buf).Encode(flatRequest)
 	if err != nil {
@@ -77,6 +85,9 @@ func (a ardoqBodyProvider) Body() (io.Reader, error) {
 	return buf, nil
 }
 
+func (a ardoqBodyProvider) ContentType() string {
+	return "application/json"
+}
 func client() *sling.Sling {
 	type OrgSearchQuery struct {
 		Org string `url:"org,omitempty"`
@@ -88,5 +99,44 @@ func client() *sling.Sling {
 		QueryStruct(&OrgSearchQuery{Org: org})
 }
 func RestyClient() *resty.Request {
-	return resty.New().R().SetAuthToken(apiKey).SetQueryParam("org", org)
+	return resty.New().SetBaseURL(baseUri).
+		SetHeaders(map[string]string{
+			"Content-Type": "application/json",
+			"Accept":       "application/json",
+		}).R().
+		SetAuthToken(apiKey).
+		SetQueryParam("org", org)
+}
+
+type BodyProvider struct {
+	request interface{}
+	fields  interface{}
+}
+
+func (a BodyProvider) Body() io.Reader {
+	requestJSON, _ := json.Marshal(a.request)
+	flatRequest := make(map[string]interface{})
+	err := json.Unmarshal(requestJSON, &flatRequest)
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	if len(a.fields.(map[string]interface{})) > 0 {
+		// marshal component.Fields
+		fieldsJSON, _ := json.Marshal(a.fields)
+		err = json.Unmarshal(fieldsJSON, &flatRequest)
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+	}
+
+	buf := &bytes.Buffer{}
+	err = json.NewEncoder(buf).Encode(flatRequest)
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+	return buf
 }
