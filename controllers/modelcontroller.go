@@ -10,13 +10,13 @@ import (
 
 // UpdateModel Update a model by its ID
 func UpdateModel(id string, model ModelRequest) error {
-	res := &ardoq.Model{}
+	//res := &ardoq.Model{}
 	errResponse := new(ardoq.Error)
 	model.ID = id
 	requestStarted := time.Now()
-	resp, err := client().Patch("model/"+id).
-		BodyProvider(ardoqBodyProvider{request: model}).
-		Receive(res, errResponse)
+	resp, err := RestyClient().SetBody(BodyProvider{
+		request: model,
+	}.Body()).SetResult(&Model{}).Patch("model/" + id)
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -25,7 +25,7 @@ func UpdateModel(id string, model ModelRequest) error {
 	}
 	if errResponse.NotOk() {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
-		errResponse.Code = resp.StatusCode
+		errResponse.Code = resp.StatusCode()
 		return errResponse
 	}
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()

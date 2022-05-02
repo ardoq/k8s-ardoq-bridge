@@ -121,14 +121,15 @@ func (a BodyProvider) Body() io.Reader {
 		log.Error(err)
 		return nil
 	}
-
-	if len(a.fields.(map[string]interface{})) > 0 {
-		// marshal component.Fields
-		fieldsJSON, _ := json.Marshal(a.fields)
-		err = json.Unmarshal(fieldsJSON, &flatRequest)
-		if err != nil {
-			log.Error(err)
-			return nil
+	if a.fields != nil {
+		if len(a.fields.(map[string]interface{})) > 0 {
+			// marshal component.Fields
+			fieldsJSON, _ := json.Marshal(a.fields)
+			err = json.Unmarshal(fieldsJSON, &flatRequest)
+			if err != nil {
+				log.Error(err)
+				return nil
+			}
 		}
 	}
 

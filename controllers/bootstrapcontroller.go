@@ -31,24 +31,26 @@ func BootstrapModel() error {
 		return err
 	}
 	requestStarted := time.Now()
-	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	workspace := resp.Result().(*Workspace)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	requestStarted = time.Now()
-	currentModel, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	resp, err = RestyClient().SetResult(&Model{}).Get("model/" + componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting model: %s", err)
 		return err
 	}
+	currentModel := resp.Result().(*Model)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 
 	model.ID = currentModel.ID
