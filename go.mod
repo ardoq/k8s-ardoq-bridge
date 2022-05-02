@@ -6,7 +6,7 @@ require (
 	github.com/dghubble/sling v1.4.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
-	github.com/mitchellh/mapstructure v1.4.3
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mories76/ardoq-client-go v0.0.10
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/ginkgo/v2 v2.1.3
@@ -17,8 +17,8 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.23.5
-	k8s.io/apimachinery v0.23.5
-	k8s.io/client-go v0.23.5
+	k8s.io/api v0.23.6
+	k8s.io/apimachinery v0.23.6
+	k8s.io/client-go v0.23.6
 	k8s.io/klog/v2 v2.40.1 // indirect
 )

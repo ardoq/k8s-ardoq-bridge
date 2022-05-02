@@ -10,9 +10,6 @@
 - label: "Node Allocatable Storage"
   type: Text
   componentType: [ "Node" ]
-- label: "Node Architecture"
-  type: Text
-  componentType: [ "Node" ]
 - label: "Node Capacity CPU"
   type: Number
   componentType: [ "Node" ]
@@ -31,9 +28,6 @@
 - label: "Node Creation Timestamp"
   type: DateTime
   componentType: [ "Node" ]
-- label: "Node Instance Type"
-  type: Text
-  componentType: [ "Node" ]
 - label: "Node Kernel Version"
   type: Text
   componentType: [ "Node" ]
@@ -46,19 +40,7 @@
 - label: "Node OS Image"
   type: Text
   componentType: [ "Node" ]
-- label: "Node OS"
-  type: Text
-  componentType: [ "Node" ]
-- label: "Node Pool"
-  type: Text
-  componentType: [ "Node" ]
 - label: "Node Provider"
-  type: Text
-  componentType: [ "Node" ]
-- label: "Node Region"
-  type: Text
-  componentType: [ "Node" ]
-- label: "Node Zone"
   type: Text
   componentType: [ "Node" ]
 - label: "Resource Creation Timestamp"
@@ -67,18 +49,9 @@
 - label: "Resource Image"
   type: Text
   componentType: [ "Deployment","StatefulSet" ]
-- label: "Resource Project"
-  type: Text
-  componentType: [ "Deployment","StatefulSet" ]
 - label: "Resource Replicas"
   type: Text
   componentType: [ "Deployment","StatefulSet" ]
-- label: "Resource Stack"
-  type: Text
-  componentType: [ "Deployment","StatefulSet" ]
-- label: "Resource Team"
-  type: Text
-  componentType: ["Deployment", "StatefulSet"]
 - label: "Resource Requests CPU"
   type: Number
   componentType: ["Deployment", "StatefulSet"]
@@ -91,3 +64,6 @@
 - label: "Resource Limits Memory"
   type: Text
   componentType: ["Deployment", "StatefulSet"]
+- label: "Shared Category"
+  type: Text
+  componentType: ["SharedNodeComponent","SharedResourceComponent"]

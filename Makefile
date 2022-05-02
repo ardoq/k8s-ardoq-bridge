@@ -32,10 +32,10 @@ unit-tests: $(SOURCES) get-ginkgo
 ## Runs all tests
 all-tests: $(SOURCES) unit-tests ardoq-integration-tests k8s-integration-tests
 
-up:
+kind-up:
 	kind create cluster --name=kind
 
-down:
+kind-down:
 	kind delete cluster --name=kind
 
 docker-build:

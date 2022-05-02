@@ -16,6 +16,8 @@ var (
 	org                           = os.Getenv("ARDOQ_ORG")
 	workspaceId                   = os.Getenv("ARDOQ_WORKSPACE_ID")
 	validApplicationResourceTypes = []string{"Deployment", "StatefulSet"}
+	ApplicationLinks              = []string{"Owns", "Is realized By", "Is Supported By"}
+	NodeLinks                     = []string{"LOCATION", "SUB_LOCATION", "ARCHITECTURE", "INSTANCE_TYPE", "OS", "NODE_POOL"}
 )
 
 func GenericUpsert(resourceType string, genericResource interface{}) string {
@@ -66,9 +68,6 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			"resource_image":              resource.Image,
 			"resource_replicas":           resource.Replicas,
 			"resource_creation_timestamp": resource.CreationTimestamp,
-			"resource_stack":              resource.Stack,
-			"resource_team":               resource.Team,
-			"resource_project":            resource.Project,
 			"resource_requests_cpu":       resource.Requests.CPU,
 			"resource_requests_memory":    resource.Requests.Memory,
 			"resource_limits_cpu":         resource.Limits.CPU,
@@ -79,13 +78,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	case "Node":
 		component.Parent = LookupCluster(os.Getenv("ARDOQ_CLUSTER"))
 		component.Fields = map[string]interface{}{
-			"node_architecture":        node.Architecture,
 			"node_container_runtime":   node.ContainerRuntime,
-			"node_instance_type":       node.InstanceType,
 			"node_kernel_version":      node.KernelVersion,
 			"node_kubelet_version":     node.KubeletVersion,
 			"node_kube_proxy_version":  node.KubeProxyVersion,
-			"node_os":                  node.OperatingSystem,
 			"node_os_image":            node.OSImage,
 			"node_capacity_cpu":        node.Capacity.CPU,
 			"node_capacity_memory":     node.Capacity.Memory,
@@ -95,11 +91,8 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			"node_allocatable_memory":  node.Allocatable.Memory,
 			"node_allocatable_storage": node.Allocatable.Storage,
 			"node_allocatable_pods":    node.Allocatable.Pods,
-			"node_pool":                node.Pool,
 			"node_provider":            node.Provider,
 			"node_creation_timestamp":  node.CreationTimestamp,
-			"node_zone":                node.Zone,
-			"node_region":              node.Region,
 		}
 		componentId = LookupNode(name)
 		break
@@ -121,10 +114,19 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		case "Deployment", "StatefulSet":
 			resource.ID = componentId
 			PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
+			resource.Link("Owns", GenericUpsertSharedComponents("Resource", "team", resource.Team), true)
+			resource.Link("Is realized By", GenericUpsertSharedComponents("Resource", "stack", resource.Stack))
+			resource.Link("Is Supported By", GenericUpsertSharedComponents("Resource", "project", resource.Project))
 			break
 		case "Node":
 			node.ID = componentId
 			PersistToCache("ResourceType/"+resourceType+"/"+name, node)
+			node.Link("LOCATION", GenericUpsertSharedComponents("Node", "location", node.Region))
+			node.Link("SUB_LOCATION", GenericUpsertSharedComponents("Node", "sub_location", node.Zone))
+			node.Link("ARCHITECTURE", GenericUpsertSharedComponents("Node", "architecture", node.Architecture))
+			node.Link("INSTANCE_TYPE", GenericUpsertSharedComponents("Node", "instance_type", node.InstanceType))
+			node.Link("OS", GenericUpsertSharedComponents("Node", "node_os", node.OperatingSystem))
+			node.Link("NODE_POOL", GenericUpsertSharedComponents("Node", "node_pool", node.Pool))
 			break
 		}
 		log.Infof("Added %s: %s: %s", resourceType, component.Name, componentId)
@@ -143,6 +145,9 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			return componentId
 		}
 		PersistToCache("ResourceType/"+resource.Namespace+"/"+resourceType+"/"+name, resource)
+		resource.Link("Owns", GenericUpsertSharedComponents("Resource", "team", resource.Team), true)
+		resource.Link("Is realized By", GenericUpsertSharedComponents("Resource", "stack", resource.Stack))
+		resource.Link("Is Supported By", GenericUpsertSharedComponents("Resource", "project", resource.Project))
 		break
 	case "Node":
 		node.ID = componentId
@@ -150,6 +155,12 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 			return componentId
 		}
 		PersistToCache("ResourceType/"+resourceType+"/"+name, node)
+		node.Link("LOCATION", GenericUpsertSharedComponents("Node", "location", node.Region))
+		node.Link("SUB_LOCATION", GenericUpsertSharedComponents("Node", "sub_location", node.Zone))
+		node.Link("ARCHITECTURE", GenericUpsertSharedComponents("Node", "architecture", node.Architecture))
+		node.Link("INSTANCE_TYPE", GenericUpsertSharedComponents("Node", "instance_type", node.InstanceType))
+		node.Link("OS", GenericUpsertSharedComponents("Node", "node_os", node.OperatingSystem))
+		node.Link("NODE_POOL", GenericUpsertSharedComponents("Node", "node_pool", node.Pool))
 		break
 	}
 	requestStarted := time.Now()
