@@ -43,6 +43,9 @@ type Node struct {
 	Region            string
 	Zone              string
 }
+type HttpError struct {
+	ID, Message string
+}
 type Model struct {
 	Ardoq struct {
 		EntityType             string      `json:"entity-type"`

@@ -105,7 +105,8 @@ func RestyClient() *resty.Request {
 			"Accept":       "application/json",
 		}).R().
 		SetAuthToken(apiKey).
-		SetQueryParam("org", org)
+		SetQueryParam("org", org).
+		SetError(new(HttpError))
 }
 
 type BodyProvider struct {
