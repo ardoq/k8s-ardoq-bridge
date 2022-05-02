@@ -180,7 +180,7 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 	if name == "" {
 		return ""
 	}
-	component := ardoq.ComponentRequest{
+	component := ComponentRequest{
 		Name:          strings.ToLower(name),
 		RootWorkspace: workspaceId,
 		TypeID:        lookUpTypeId("Shared" + resourceType + "Component"),
@@ -191,7 +191,11 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 	componentId := GenericLookupSharedComponents(resourceType, category, name)
 	if componentId == "" {
 		requestStarted := time.Now()
-		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		resp, err := RestyClient().SetBody(BodyProvider{
+			request: component,
+			fields:  component.Fields,
+		}.Body()).SetResult(&Component{}).Post("component")
+		cmp := resp.Result().(*Component)
 		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -212,7 +216,7 @@ func GenericDeleteSharedComponents(resourceType string, category string, name st
 		return errors.New("resource not found")
 	}
 	requestStarted := time.Now()
-	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	_, err = RestyClient().Delete("component/" + componentId)
 	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
