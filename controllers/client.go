@@ -11,7 +11,6 @@ import (
 
 func RestyClient() *resty.Request {
 	client := resty.New()
-	client.JSONUnmarshal = Decode
 	request := client.SetBaseURL(baseUri).
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",

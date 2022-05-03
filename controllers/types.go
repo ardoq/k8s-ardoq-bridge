@@ -153,7 +153,7 @@ type Component struct {
 	CreatedByEmail      string                 `json:"createdByEmail"`
 	CreatedByName       string                 `json:"createdByName"`
 	Description         string                 `json:"description"`
-	ID                  string                 `json:"_id"`
+	ID                  string                 `json:"_id" mapstructure:"_id"`
 	LastUpdated2        string                 `json:"last-updated"`
 	LastModifiedBy      string                 `json:"last-modified-by"`
 	LastModifiedByEmail string                 `json:"lastModifiedByEmail"`
@@ -162,7 +162,7 @@ type Component struct {
 	Model               string                 `json:"model"`
 	Name                string                 `json:"name"`
 	Order               float64                `json:"_order"`
-	Parent              interface{}            `json:"parent"`
+	Parent              string                 `json:"parent,omitempty"`
 	RootWorkspace       string                 `json:"rootWorkspace"`
 	Type                string                 `json:"type"`
 	TypeID              string                 `json:"typeId"`

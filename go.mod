@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dghubble/sling v1.4.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
 	github.com/mitchellh/mapstructure v1.5.0

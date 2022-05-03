@@ -2,9 +2,6 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	"context"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -100,7 +97,6 @@ func BootstrapFields() error {
 }
 func InitializeCache() error {
 	requestStarted := time.Now()
-	//components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
 	resp, err := RestyClient().SetQueryParam("workspace", workspaceId).Get("component/search")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
@@ -109,8 +105,7 @@ func InitializeCache() error {
 		return err
 	}
 	var components []Component
-	_ = mapstructure.WeakDecode(resp.Result(), &components)
-	spew.Dump(components)
+	_ = Decode(resp.Body(), &components)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get the current cluster
 	var clusterComponent Component
@@ -167,13 +162,13 @@ func InitializeCache() error {
 	}
 	//get application resources
 	for _, v := range components {
-		if Contains([]string{"Deployment", "StatefulSet"}, v.Type) && Contains(namespaces, v.Parent.(string)) {
+		if Contains([]string{"Deployment", "StatefulSet"}, v.Type) && Contains(namespaces, v.Parent) {
 			resourceComponents = append(resourceComponents, v)
 			resource := Resource{
 				ID:                v.ID,
 				Name:              v.Name,
 				ResourceType:      v.Type,
-				Namespace:         getNamespace(namespaceComponents, v.Parent.(string)),
+				Namespace:         getNamespace(namespaceComponents, v.Parent),
 				Image:             v.Fields["resource_image"].(string),
 				CreationTimestamp: v.Fields["resource_creation_timestamp"].(string),
 			}
@@ -190,16 +185,18 @@ func InitializeCache() error {
 		}
 	}
 	requestStarted = time.Now()
-	references, err := ardRestClient().References().GetAll(context.TODO())
+	resp, err = RestyClient().Get("reference")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error fetching references: %s", err)
 		return err
 	}
+	var references []Reference
+	_ = Decode(resp.Body(), &references)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get shared references
-	for _, v := range *references {
+	for _, v := range references {
 		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
 			PersistToCache("SharedResourceLinks/"+v.Description, v.ID)
 		}
