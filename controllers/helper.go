@@ -4,13 +4,10 @@ import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"context"
 	"errors"
-	"fmt"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	goCache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -21,14 +18,6 @@ var (
 	ClientSet *kubernetes.Clientset
 )
 
-func ardRestClient() *ardoq.APIClient {
-	a, err := ardoq.NewRestClient(baseUri, apiKey, org, "v0.0.0")
-	if err != nil {
-		fmt.Printf("cannot create new restclient %s", err)
-		os.Exit(1)
-	}
-	return a
-}
 func LookupCluster(name string, deletion ...bool) string {
 	if cachedResource, found := GetFromCache("ResourceType/Cluster/" + name); found {
 		return cachedResource.(string)

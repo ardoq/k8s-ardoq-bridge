@@ -3,11 +3,23 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/mitchellh/mapstructure"
+	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"os"
 )
+
+func ardRestClient() *ardoq.APIClient {
+	a, err := ardoq.NewRestClient(baseUri, apiKey, org, "v0.0.0")
+	if err != nil {
+		fmt.Printf("cannot create new restclient %s", err)
+		os.Exit(1)
+	}
+	return a
+}
 
 func RestyClient() *resty.Request {
 	client := resty.New()
