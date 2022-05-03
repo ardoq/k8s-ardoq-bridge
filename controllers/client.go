@@ -9,7 +9,9 @@ import (
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/http"
 	"os"
+	"time"
 )
 
 func ardRestClient() *ardoq.APIClient {
@@ -22,8 +24,16 @@ func ardRestClient() *ardoq.APIClient {
 }
 
 func RestyClient() *resty.Request {
-	client := resty.New()
-	request := client.SetBaseURL(baseUri).
+	requestClient := resty.New().
+		SetRetryCount(3).
+		SetRetryWaitTime(5*time.Second).
+		SetRetryMaxWaitTime(10*time.Second).
+		AddRetryCondition(
+			func(r *resty.Response, err error) bool {
+				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == http.StatusBadGateway || r.StatusCode() == http.StatusGatewayTimeout
+			},
+		).
+		SetBaseURL(baseUri).
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 			"Accept":       "application/json",
@@ -32,7 +42,7 @@ func RestyClient() *resty.Request {
 		SetQueryParam("org", org).
 		SetError(new(HttpError))
 
-	return request
+	return requestClient
 }
 
 func Decode(resp []byte, v interface{}) error {
