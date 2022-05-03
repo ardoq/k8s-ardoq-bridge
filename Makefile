@@ -33,7 +33,7 @@ unit-tests: $(SOURCES) get-ginkgo
 all-tests: $(SOURCES) unit-tests ardoq-integration-tests k8s-integration-tests
 
 kind-up:
-	kind create cluster --name=kind
+	kind create cluster --name=kind --config ./kind/config.yaml
 
 kind-down:
 	kind delete cluster --name=kind
@@ -41,7 +41,7 @@ kind-down:
 docker-build:
 	docker build -t ardoq/k8s-ardoq-bridge:devel .
 
-docker-load:
+kind-load: docker-build
 	kind load docker-image ardoq/k8s-ardoq-bridge:devel --name=kind
 
 run:
