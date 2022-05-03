@@ -3,7 +3,6 @@ package controllers
 import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"errors"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
@@ -47,7 +46,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		log.Error(err)
 		os.Exit(1)
 	}
-	component := ardoq.ComponentRequest{
+	component := ComponentRequest{
 		Name:          name,
 		RootWorkspace: workspaceId,
 		TypeID:        lookUpTypeId(resourceType),
