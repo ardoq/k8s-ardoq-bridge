@@ -99,12 +99,16 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 	if componentId == "" {
 		requestStarted := time.Now()
-		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		resp, err := RestyClient().SetBody(BodyProvider{
+			request: component,
+			fields:  component.Fields,
+		}.Body()).SetResult(&Component{}).Post("component")
 		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error creating %s: %s", resourceType, err)
 		}
+		cmp := resp.Result().(*Component)
 		metrics.RequestStatusCode.WithLabelValues("success").Inc()
 		componentId = cmp.ID
 		switch resourceType {
@@ -164,7 +168,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		break
 	}
 	requestStarted := time.Now()
-	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	_, err = RestyClient().SetBody(BodyProvider{
+		request: component,
+		fields:  component.Fields,
+	}.Body()).SetResult(&Component{}).Patch("component/" + componentId)
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
