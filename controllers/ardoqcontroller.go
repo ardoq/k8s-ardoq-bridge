@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	"context"
 	"errors"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
@@ -219,7 +218,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 		return errors.New("resource not found")
 	}
 	requestStarted := time.Now()
-	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	_, err = RestyClient().Delete("component/" + componentId)
 	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
