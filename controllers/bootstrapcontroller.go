@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	"context"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -31,24 +29,26 @@ func BootstrapModel() error {
 		return err
 	}
 	requestStarted := time.Now()
-	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	workspace := resp.Result().(*Workspace)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	requestStarted = time.Now()
-	currentModel, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	resp, err = RestyClient().SetResult(&Model{}).Get("model/" + componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting model: %s", err)
 		return err
 	}
+	currentModel := resp.Result().(*Model)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 
 	model.ID = currentModel.ID
@@ -77,13 +77,14 @@ func BootstrapFields() error {
 		return err
 	}
 	requestStarted := time.Now()
-	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting workspace: %s", err)
 		return err
 	}
+	workspace := resp.Result().(*Workspace)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
@@ -96,21 +97,23 @@ func BootstrapFields() error {
 }
 func InitializeCache() error {
 	requestStarted := time.Now()
-	components, err := ardRestClient().Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: workspaceId})
+	resp, err := RestyClient().SetQueryParam("workspace", workspaceId).Get("component/search")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error fetching components: %s", err)
 		return err
 	}
+	var components []Component
+	_ = Decode(resp.Body(), &components)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get the current cluster
-	var clusterComponent ardoq.Component
-	var nodeComponents []ardoq.Component
-	var namespaceComponents []ardoq.Component
-	var resourceComponents []ardoq.Component
+	var clusterComponent Component
+	var nodeComponents []Component
+	var namespaceComponents []Component
+	var resourceComponents []Component
 	var namespaces []string
-	for _, v := range *components {
+	for _, v := range components {
 		if v.Type == "Cluster" && v.Name == os.Getenv("ARDOQ_CLUSTER") {
 			clusterComponent = v
 			PersistToCache("ResourceType/"+v.Type+"/"+v.Name, v.ID)
@@ -120,7 +123,7 @@ func InitializeCache() error {
 		return nil
 	}
 	//get namespaces
-	for _, v := range *components {
+	for _, v := range components {
 		if v.Type == "Namespace" && v.Parent == clusterComponent.ID {
 			namespaceComponents = append(namespaceComponents, v)
 			namespaces = append(namespaces, v.ID)
@@ -128,7 +131,7 @@ func InitializeCache() error {
 		}
 	}
 	//get nodes
-	for _, v := range *components {
+	for _, v := range components {
 		if v.Type == "Node" && v.Parent == clusterComponent.ID {
 			nodeComponents = append(nodeComponents, v)
 			node := Node{
@@ -158,14 +161,14 @@ func InitializeCache() error {
 		}
 	}
 	//get application resources
-	for _, v := range *components {
-		if Contains([]string{"Deployment", "StatefulSet"}, v.Type) && Contains(namespaces, v.Parent.(string)) {
+	for _, v := range components {
+		if Contains([]string{"Deployment", "StatefulSet"}, v.Type) && Contains(namespaces, v.Parent) {
 			resourceComponents = append(resourceComponents, v)
 			resource := Resource{
 				ID:                v.ID,
 				Name:              v.Name,
 				ResourceType:      v.Type,
-				Namespace:         getNamespace(namespaceComponents, v.Parent.(string)),
+				Namespace:         getNamespace(namespaceComponents, v.Parent),
 				Image:             v.Fields["resource_image"].(string),
 				CreationTimestamp: v.Fields["resource_creation_timestamp"].(string),
 			}
@@ -176,22 +179,24 @@ func InitializeCache() error {
 		}
 	}
 	//get shared components
-	for _, v := range *components {
+	for _, v := range components {
 		if Contains([]string{"SharedResourceComponent", "SharedNodeComponent"}, v.Type) {
 			PersistToCache(v.Type+"/"+v.Fields["shared_category"].(string)+"/"+strings.ToLower(v.Name), v.ID)
 		}
 	}
 	requestStarted = time.Now()
-	references, err := ardRestClient().References().GetAll(context.TODO())
+	resp, err = RestyClient().Get("reference")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error fetching references: %s", err)
 		return err
 	}
+	var references []Reference
+	_ = Decode(resp.Body(), &references)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get shared references
-	for _, v := range *references {
+	for _, v := range references {
 		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
 			PersistToCache("SharedResourceLinks/"+v.Description, v.ID)
 		}
@@ -201,7 +206,7 @@ func InitializeCache() error {
 	}
 	return nil
 }
-func getNamespace(namespaceComponents []ardoq.Component, id string) string {
+func getNamespace(namespaceComponents []Component, id string) string {
 	for _, v := range namespaceComponents {
 		if v.ID == id {
 			return v.Name

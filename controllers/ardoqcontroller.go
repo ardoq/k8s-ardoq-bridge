@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	"context"
 	"errors"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
@@ -48,7 +46,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		log.Error(err)
 		os.Exit(1)
 	}
-	component := ardoq.ComponentRequest{
+	component := ComponentRequest{
 		Name:          name,
 		RootWorkspace: workspaceId,
 		TypeID:        lookUpTypeId(resourceType),
@@ -99,12 +97,16 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 	if componentId == "" {
 		requestStarted := time.Now()
-		cmp, err := ardRestClient().Components().Create(context.TODO(), component)
+		resp, err := RestyClient().SetBody(BodyProvider{
+			request: component,
+			fields:  component.Fields,
+		}.Body()).SetResult(&Component{}).Post("component")
 		metrics.RequestLatency.WithLabelValues("create").Observe(time.Since(requestStarted).Seconds())
 		if err != nil {
 			metrics.RequestStatusCode.WithLabelValues("error").Inc()
 			log.Errorf("Error creating %s: %s", resourceType, err)
 		}
+		cmp := resp.Result().(*Component)
 		metrics.RequestStatusCode.WithLabelValues("success").Inc()
 		componentId = cmp.ID
 		switch resourceType {
@@ -164,7 +166,10 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 		break
 	}
 	requestStarted := time.Now()
-	_, err = ardRestClient().Components().Update(context.TODO(), componentId, component)
+	_, err = RestyClient().SetBody(BodyProvider{
+		request: component,
+		fields:  component.Fields,
+	}.Body()).SetResult(&Component{}).Patch("component/" + componentId)
 	metrics.RequestLatency.WithLabelValues("update").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -212,7 +217,7 @@ func GenericDelete(resourceType string, genericResource interface{}) error {
 		return errors.New("resource not found")
 	}
 	requestStarted := time.Now()
-	err = ardRestClient().Components().Delete(context.TODO(), componentId)
+	_, err = RestyClient().Delete("component/" + componentId)
 	metrics.RequestLatency.WithLabelValues("delete").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()

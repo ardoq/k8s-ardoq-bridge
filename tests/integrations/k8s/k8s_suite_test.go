@@ -3,9 +3,6 @@ package k8s_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
-	"context"
-	"fmt"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
@@ -70,18 +67,18 @@ var _ = AfterSuite(func() {
 })
 
 func cleanupCluster() {
-	a, err := ardoq.NewRestClient(os.Getenv("ARDOQ_BASEURI"), os.Getenv("ARDOQ_APIKEY"), os.Getenv("ARDOQ_ORG"), "v0.0.0")
-	if err != nil {
-		fmt.Printf("cannot create new restclient %s", err)
-		os.Exit(1)
-	}
-	cluster, err := a.Components().Search(context.TODO(), &ardoq.ComponentSearchQuery{Workspace: os.Getenv("ARDOQ_WORKSPACE_ID"), Name: os.Getenv("ARDOQ_CLUSTER")})
+	resp, err := controllers.RestyClient().
+		SetQueryParams(map[string]string{
+			"workspace": os.Getenv("ARDOQ_WORKSPACE_ID"),
+			"name":      os.Getenv("ARDOQ_CLUSTER")}).
+		Get("component/search")
 	if err != nil {
 		log.Errorf("Error fetching clusters: %s", err)
 	}
-
-	for _, v := range *cluster {
-		err = a.Components().Delete(context.TODO(), v.ID)
+	var cluster []controllers.Component
+	_ = controllers.Decode(resp.Body(), &cluster)
+	for _, v := range cluster {
+		_, err = controllers.RestyClient().Delete("component/" + v.ID)
 		if err != nil {
 			log.Errorf("Error deleting cluster %s: %s", v.Name, err)
 
