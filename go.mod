@@ -17,7 +17,6 @@ require (
 	golang.org/x/tools v0.1.10
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.23.6
-	k8s.io/apimachinery v0.23.6
+	k8s.io/apimachinery v0.24.0
 	k8s.io/client-go v0.23.6
-	k8s.io/klog/v2 v2.40.1 // indirect
 )
