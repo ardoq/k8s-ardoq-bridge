@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	k "k8s.io/client-go/kubernetes"
+	"os"
 	"sync"
 	"time"
 )
@@ -56,7 +57,6 @@ func EventBuffer(context context.Context, client k.Interface,
 			err := func(t int, c <-chan watch.Event) error {
 				defer wg.Done()
 				counter := 0
-			loop:
 				for {
 					select {
 					case update, hasUpdate := <-c:
@@ -73,8 +73,7 @@ func EventBuffer(context context.Context, client k.Interface,
 						} else {
 							// the channel got closed, so we need to restart
 							log.Error("Kubernetes hung up on us, exiting!")
-							break loop
-							//os.Exit(1)
+							os.Exit(1)
 						}
 						//case <-time.After(30 * time.Minute):
 						//	// deal with the issue where we get no events
@@ -82,7 +81,6 @@ func EventBuffer(context context.Context, client k.Interface,
 					}
 					counter++
 				}
-				return nil
 			}(x, o)
 			if err != nil {
 				log.Error(err)
