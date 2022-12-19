@@ -113,7 +113,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Release snapshot
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v4
         with:
           version: v1.1.0
           args: release --snapshot --skip-publish --rm-dist
