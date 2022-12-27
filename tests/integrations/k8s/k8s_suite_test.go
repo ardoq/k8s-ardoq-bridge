@@ -11,9 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 func TestK8s(t *testing.T) {
@@ -44,9 +41,9 @@ var _ = BeforeSuite(func() {
 	session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
-	Eventually(session.Err, 20).Should(gbytes.Say(`.*Initialised cluster in Ardoq`))
+	Eventually(session.Err, 30).Should(gbytes.Say(`.*Initialised cluster in Ardoq`))
 	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
-	Eventually(session.Err, 20).Should(gbytes.Say(`.*successfully acquired lease.*`))
+	Eventually(session.Err, 30).Should(gbytes.Say(`.*successfully acquired lease.*`))
 	controllers.ApplyDelay(5)
 	log.Info("Initializing Complete")
 })
