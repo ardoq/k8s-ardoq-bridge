@@ -12,7 +12,7 @@ SOURCES := $(shell find . -name '*.go')
 .PHONY: get-ginkgo
 ## Installs Ginkgo CLI
 get-ginkgo:
-	@go install github.com/onsi/ginkgo/ginkgo
+	@go get github.com/onsi/ginkgo/ginkgo
 
 .PHONY: k8s-integration-tests
 k8s-integration-tests: $(SOURCES) get-ginkgo
