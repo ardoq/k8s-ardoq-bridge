@@ -68,7 +68,7 @@ jobs:
           fetch-depth: 0
       - name: Set output
         id: vars
-        run: echo "name=tag::${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
       - uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
