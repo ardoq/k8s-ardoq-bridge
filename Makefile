@@ -17,21 +17,24 @@ get-ginkgo:
 
 .PHONY: k8s-integration-tests
 k8s-integration-tests: $(SOURCES) get-ginkgo
-	@$(GINKGO) -v -progress -p ./tests/integrations/k8s
+	@$(GINKGO) -v  --show-node-events ./tests/integrations/k8s
 
 .PHONY: ardoq-integration-tests
 ## Runs ardoq integration tests
 ardoq-integration-tests: $(SOURCES) get-ginkgo
-	@$(GINKGO) -v -progress -p  ./tests/integrations/ardoq
+	@$(GINKGO) -v  --show-node-events ./tests/integrations/ardoq
 
 .PHONY: unit-tests
 ## Runs ardoq integration tests
 unit-tests: $(SOURCES) get-ginkgo
-	@$(GINKGO) -v -progress -p  ./tests/unit
+	@$(GINKGO) -v  --show-node-events -p  ./tests/unit
+
+cleanup:
+	go mod tidy
 
 .PHONY: all-tests
 ## Runs all tests
-all-tests: $(SOURCES) unit-tests ardoq-integration-tests k8s-integration-tests
+all-tests: $(SOURCES) unit-tests ardoq-integration-tests k8s-integration-tests cleanup
 
 kind-up:
 	kind create cluster --name=kind --config ./kind/config.yaml
