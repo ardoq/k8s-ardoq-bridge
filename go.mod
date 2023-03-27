@@ -4,11 +4,11 @@ go 1.18
 
 require (
 	github.com/go-resty/resty/v2 v2.7.0
-	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mories76/ardoq-client-go v0.0.12
-	github.com/onsi/ginkgo/v2 v2.9.1
-	github.com/onsi/gomega v1.27.4
+	github.com/onsi/ginkgo/v2 v2.9.2
+	github.com/onsi/gomega v1.27.5
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
