@@ -11,7 +11,7 @@ require (
 	github.com/onsi/gomega v1.27.5
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.15.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/sirupsen/logrus v1.9.0
 	golang.org/x/tools v0.7.0
 	gopkg.in/yaml.v2 v2.4.0
