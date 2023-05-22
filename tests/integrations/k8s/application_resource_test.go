@@ -21,7 +21,7 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "app=nginx,parent=deploy")
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(session.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+			Eventually(session.Out, 20).Should(gbytes.Say(".*pod.* met*"))
 			log.Infof("Created deployment")
 		})
 		It("Can fetch tagged Deployments", func() {
@@ -70,7 +70,7 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "app=nginx,parent=sts")
 			session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(session.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+			Eventually(session.Out, 20).Should(gbytes.Say(".*pod.* met*"))
 			log.Infof("Created statefulset")
 		})
 		It("Can fetch created StatefulSet", func() {
@@ -120,7 +120,7 @@ var _ = Describe("ApplicationResource", func() {
 			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "parent=sts-labelled-ns", "-n", "labelled-ns")
 			stsSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(stsSession.Out, 10).Should(gbytes.Say(".*pod.* met*"))
+			Eventually(stsSession.Out, 20).Should(gbytes.Say(".*pod.* met*"))
 
 			cmd = exec.Command("kubectl", "wait", "--for=condition=ready", "--timeout=180s", "pod", "-l", "parent=deploy-labelled-ns", "-n", "labelled-ns")
 			deploySession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
