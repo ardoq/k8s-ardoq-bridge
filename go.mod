@@ -3,7 +3,7 @@ module K8SArdoqBridge/app
 go 1.20
 
 require (
-	github.com/go-resty/resty/v2 v2.12.0
+	github.com/go-resty/resty/v2 v2.13.1
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mories76/ardoq-client-go v0.0.12
