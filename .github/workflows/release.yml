@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Checkout code
@@ -59,7 +59,7 @@ jobs:
     environment: "GITHUB CI"
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Checkout code
