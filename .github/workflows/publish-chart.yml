@@ -17,6 +17,9 @@ on:
 env:
   CHART_DIR: helm/chart
 
+permissions:
+  contents: write
+
 jobs:
   test-helm-chart:
     name: Test Helm Chart
