@@ -3,12 +3,13 @@ package ardoq_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
+	"strings"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
-	"time"
 )
 
 var _ = Describe("Nodes", Ordered, func() {

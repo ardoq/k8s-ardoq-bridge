@@ -3,9 +3,10 @@ package ardoq_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"testing"
+
+	log "github.com/sirupsen/logrus"
 
 	_ "github.com/go-task/slim-sprig"
 	. "github.com/onsi/ginkgo/v2"

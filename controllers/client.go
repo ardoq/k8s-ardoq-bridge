@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
+	"io"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/mitchellh/mapstructure"
 	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"os"
-	"time"
 )
 
 func ardRestClient() *ardoq.APIClient {

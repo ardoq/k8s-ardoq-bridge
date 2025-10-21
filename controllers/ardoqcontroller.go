@@ -3,9 +3,10 @@ package controllers
 import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (

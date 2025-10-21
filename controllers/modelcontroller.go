@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
+	"time"
+
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 // UpdateModel Update a model by its ID

@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 func BootstrapModel() error {
