@@ -1,3 +1,5 @@
+.ONESHELL:
+
 VERSION=`cat VERSION`
 export KUBECONFIG ?= ${HOME}/.kube/config
 
@@ -9,11 +11,20 @@ GINKGO=$(GOBIN)/ginkgo
 
 SOURCES := $(shell find . -name '*.go')
 
+#include .env
+
+install-git-hooks:
+	pre-commit install --hook-type pre-commit --hook-type pre-push
+
 .PHONY: get-ginkgo
 ## Installs Ginkgo CLI
 get-ginkgo:
 	@go get github.com/onsi/ginkgo/v2/ginkgo/internal@v2
 	@go install github.com/onsi/ginkgo/v2/ginkgo
+
+bootstrap: get-ginkgo
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
+	golangci-lint version
 
 .PHONY: k8s-integration-tests
 k8s-integration-tests: $(SOURCES) get-ginkgo
