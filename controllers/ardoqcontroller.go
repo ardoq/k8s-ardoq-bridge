@@ -3,20 +3,23 @@ package controllers
 import (
 	"K8SArdoqBridge/app/lib/metrics"
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
-	baseUri                       = os.Getenv("ARDOQ_BASEURI")
-	apiKey                        = os.Getenv("ARDOQ_APIKEY")
-	org                           = os.Getenv("ARDOQ_ORG")
-	workspaceId                   = os.Getenv("ARDOQ_WORKSPACE_ID")
 	validApplicationResourceTypes = []string{"Deployment", "StatefulSet"}
 	ApplicationLinks              = []string{"Owns", "Is realized By", "Is Supported By"}
 	NodeLinks                     = []string{"LOCATION", "SUB_LOCATION", "ARCHITECTURE", "INSTANCE_TYPE", "OS", "NODE_POOL"}
 )
+
+// Configuration getters - read from environment on each call to support testing
+func getBaseUri() string     { return os.Getenv("ARDOQ_BASEURI") }
+func getApiKey() string      { return os.Getenv("ARDOQ_APIKEY") }
+func getOrg() string         { return os.Getenv("ARDOQ_ORG") }
+func getWorkspaceId() string { return os.Getenv("ARDOQ_WORKSPACE_ID") }
 
 func GenericUpsert(resourceType string, genericResource interface{}) string {
 	var (
@@ -48,7 +51,7 @@ func GenericUpsert(resourceType string, genericResource interface{}) string {
 	}
 	component := ComponentRequest{
 		Name:          name,
-		RootWorkspace: workspaceId,
+		RootWorkspace: getWorkspaceId(),
 		TypeID:        lookUpTypeId(resourceType),
 	}
 	switch resourceType {

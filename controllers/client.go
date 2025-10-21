@@ -4,43 +4,83 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
+	"io"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/mitchellh/mapstructure"
-	ardoq "github.com/mories76/ardoq-client-go/pkg"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"os"
-	"time"
 )
 
-func ardRestClient() *ardoq.APIClient {
-	a, err := ardoq.NewRestClient(baseUri, apiKey, org, "v0.0.0")
-	if err != nil {
-		fmt.Printf("cannot create new restclient %s", err)
-		os.Exit(1)
-	}
-	return a
-}
-
 func RestyClient() *resty.Request {
-	requestClient := resty.New().
+
+	client := resty.New().
 		SetRetryCount(3).
-		SetRetryWaitTime(5*time.Second).
-		SetRetryMaxWaitTime(10*time.Second).
+		SetRetryWaitTime(5 * time.Second).
+		SetRetryMaxWaitTime(10 * time.Second).
 		AddRetryCondition(
 			func(r *resty.Response, err error) bool {
 				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == http.StatusBadGateway || r.StatusCode() == http.StatusGatewayTimeout
 			},
 		).
-		SetBaseURL(baseUri).
+		SetBaseURL(getBaseUri()).
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 			"Accept":       "application/json",
-		}).R().
-		SetAuthToken(apiKey).
-		SetQueryParam("org", org).
-		SetError(new(HttpError))
+			"x-org":        getOrg(),
+		}).
+		OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
+			// Log all requests at trace level for debugging
+
+			log.Debugf("%s %s -> HTTP %d (%s)",
+				resp.Request.Method,
+				resp.Request.URL,
+				resp.StatusCode(),
+				resp.Status())
+
+			// Log response body, trimming if too large
+			if len(resp.Body()) > 0 {
+				body := string(resp.Body())
+				if len(body) > 1000 {
+					body = body[:1000] + "... (truncated)"
+				}
+				log.Tracef("Response body: %s", body)
+			}
+
+			// Check if the HTTP status code indicates an error
+			// Note: 404 and 409 are not treated as errors (404 checks existence, 409 is conflict/already exists)
+			if resp.StatusCode() >= 400 && resp.StatusCode() != http.StatusNotFound && resp.StatusCode() != http.StatusConflict {
+				// Always log errors regardless of log level
+				log.Errorf("HTTP Error: %s %s -> %d (%s)",
+					resp.Request.Method,
+					resp.Request.URL,
+					resp.StatusCode(),
+					resp.Status())
+
+				// Log response body for errors, trimming if too large
+				if len(resp.Body()) > 0 {
+					body := string(resp.Body())
+					if len(body) > 1000 {
+						body = body[:1000] + "... (truncated)"
+					}
+					log.Errorf("Error response body: %s", body)
+				}
+
+				// Extract error message if available
+				errorMsg := fmt.Sprintf("HTTP %d: %s", resp.StatusCode(), resp.Status())
+				if resp.Error() != nil {
+					if httpErr, ok := resp.Error().(*HttpError); ok && httpErr.Message != "" {
+						errorMsg = fmt.Sprintf("%s - %s", errorMsg, httpErr.Message)
+					}
+				}
+				return fmt.Errorf("%s", errorMsg)
+			}
+			return nil
+		})
+
+	requestClient := client.R().SetAuthToken(getApiKey()).SetError(new(HttpError))
 
 	return requestClient
 }

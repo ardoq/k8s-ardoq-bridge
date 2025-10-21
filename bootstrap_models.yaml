@@ -4,6 +4,7 @@ root:
   p1:
     name: Cluster
     id: "p1"
+    index: 1
     icon: "cloud"
     returnsValue: true
     level: 1
@@ -11,6 +12,7 @@ root:
       p11:
         name: Namespace
         id: "p11"
+        index: 11
         icon: "sitemap"
         returnsValue: true
         level: 2
@@ -18,35 +20,40 @@ root:
           p111:
             name: Deployment
             id: "p111"
+            index: 111
             icon: "cogs"
             returnsValue: true
             level: 3
-            children: { }
+            children: {}
           p112:
             name: StatefulSet
             id: "p112"
+            index: 112
             icon: "hdd-o"
             returnsValue: true
             level: 3
-            children: { }
+            children: {}
       p12:
         name: Node
         id: "p12"
+        index: 12
         icon: "server"
         returnsValue: true
         level: 2
-        children: { }
+        children: {}
   p8:
     name: SharedResourceComponent
     id: "p8"
+    index: 8
     icon: "wrench"
     returnsValue: true
     level: 1
-    children: { }
+    children: {}
   p9:
     name: SharedNodeComponent
     id: "p9"
+    index: 9
     icon: "wrench"
     returnsValue: true
     level: 1
-    children: { }
+    children: {}

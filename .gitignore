@@ -12,3 +12,4 @@ devspace*
 .env
 #ignore sonarqube scanner
 .scannerwork
+app

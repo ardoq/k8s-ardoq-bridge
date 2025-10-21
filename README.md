@@ -35,7 +35,7 @@ helm upgrade --install k8s-ardoq-bridge ./helm/chart --set "ardoq.baseUri='https
 As an alternative to the --set option of the helm command, you can also edit the values.yaml file.
 
 ## How do I onboard an Application Resource?
-On either the namespace or the specific Resource, you simply add:
+Label either the namespace or the specific Resource:
 ```yaml
 sync-to-ardoq: "enabled"
 ```
@@ -63,6 +63,9 @@ workspace. Each resource type monitored,i.e Deployments,StatefulSets and Nodes, 
 sync serially ensuring "no resource gets left behind". It performs a single syncing pass on initialisation capturing all
 the labelled Application Resources and only performs subsequent syncs if the data stored in-memory differs from resource
 details being updated.
+
+P.S:
+Resources in a labelled namespaces are consolidated the next time the pod restarts or when the resources in the cluster are processed through the operator again, i.e when they are modified externally.
 
 ### Can I get a bit more detail?
 

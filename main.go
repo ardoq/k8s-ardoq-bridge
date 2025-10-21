@@ -25,10 +25,18 @@ import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/lib/runtime"
 	"K8SArdoqBridge/app/lib/subscription"
+	"K8SArdoqBridge/app/lib/utils"
 	"K8SArdoqBridge/app/lib/watcher"
 	"K8SArdoqBridge/app/subscriptions"
 	"context"
 	"flag"
+	"net/http"
+	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,12 +44,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"net/http"
-	_ "net/http/pprof"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 var (
@@ -199,12 +201,25 @@ func main() {
 }
 
 func init() {
-	if os.Getenv("ENVIRONMENT") == "production" {
+	switch env := utils.GetEnv("ENVIRONMENT", "dev"); env {
+	case "production":
 		log.SetFormatter(&log.JSONFormatter{})
-	} else if os.Getenv("ENVIRONMENT") == "debug" {
+	case "debug", "test":
 		log.SetFormatter(&log.JSONFormatter{})
 		log.SetReportCaller(true)
+	case "dev":
+		log.SetFormatter(&log.TextFormatter{})
+		log.SetReportCaller(true)
+	default:
+		log.SetFormatter(&log.JSONFormatter{})
 	}
+
+	logLevel := utils.GetEnv("LOG_LEVEL", "info")
+	parsedLogLevel, err := log.ParseLevel(logLevel)
+	if err != nil {
+		log.Fatalf("Invalid Log Level: %s", err.Error())
+	}
+	log.SetLevel(parsedLogLevel)
 
 	hostname, _ := os.Hostname()
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")

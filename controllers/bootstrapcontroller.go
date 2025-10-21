@@ -2,34 +2,31 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 func BootstrapModel() error {
-	yamlFile, err := ioutil.ReadFile("bootstrap_models.yaml")
+	yamlFile, err := os.ReadFile("bootstrap_models.yaml")
 	if err != nil {
 		log.Errorf("yamlFile.Get err #%v ", err)
 		return err
 	}
 	model := ModelRequest{}
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	err = yaml.Unmarshal(yamlFile, &model)
 
+	err = yaml.Unmarshal(yamlFile, &model)
 	if err != nil {
-		log.Errorf("Unmarshal: %v", err)
+		log.Errorf("Unmarshalling yaml into model: %v", err)
 		return err
 	}
 	requestStarted := time.Now()
-	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + getWorkspaceId())
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -40,6 +37,7 @@ func BootstrapModel() error {
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
+	log.Tracef("Workspace Model to be used: %s", componentModel)
 	requestStarted = time.Now()
 	resp, err = RestyClient().SetResult(&Model{}).Get("model/" + componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
@@ -77,7 +75,7 @@ func BootstrapFields() error {
 		return err
 	}
 	requestStarted := time.Now()
-	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + getWorkspaceId())
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -97,7 +95,7 @@ func BootstrapFields() error {
 }
 func InitializeCache() error {
 	requestStarted := time.Now()
-	resp, err := RestyClient().SetQueryParam("workspace", workspaceId).Get("component/search")
+	resp, err := RestyClient().SetQueryParam("workspace", getWorkspaceId()).Get("component/search")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -197,10 +195,10 @@ func InitializeCache() error {
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get shared references
 	for _, v := range references {
-		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
+		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == getWorkspaceId() {
 			PersistToCache("SharedResourceLinks/"+v.Description, v.ID)
 		}
-		if Contains(NodeLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
+		if Contains(NodeLinks, v.DisplayText) && v.RootWorkspace == getWorkspaceId() {
 			PersistToCache("SharedNodeLinks/"+v.Description, v.ID)
 		}
 	}

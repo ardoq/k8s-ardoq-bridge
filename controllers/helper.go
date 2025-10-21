@@ -2,20 +2,20 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	"context"
 	"errors"
+	"strconv"
+	"strings"
+	"time"
+
 	goCache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
 	Cache     = goCache.New(5*time.Minute, 10*time.Minute)
-	ClientSet *kubernetes.Clientset
+	ClientSet kubernetes.Interface
 )
 
 func LookupCluster(name string, deletion ...bool) string {
@@ -52,22 +52,26 @@ func lookUpTypeId(name string) string {
 		return typeId.(string)
 	}
 	requestStarted := time.Now()
-	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + getWorkspaceId())
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting workspace: %s", err)
+		return ""
 	}
+	workspace := resp.Result().(*Workspace)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	requestStarted = time.Now()
-	model, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	resp, err = RestyClient().SetResult(&Model{}).Get("model/" + componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting model: %s", err)
+		return ""
 	}
+	model := resp.Result().(*Model)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
@@ -171,7 +175,7 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 	}
 	component := ComponentRequest{
 		Name:          strings.ToLower(name),
-		RootWorkspace: workspaceId,
+		RootWorkspace: getWorkspaceId(),
 		TypeID:        lookUpTypeId("Shared" + resourceType + "Component"),
 		Fields: map[string]interface{}{
 			"shared_category": category,
@@ -221,8 +225,8 @@ func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ReferenceRequest{
 			DisplayText:     linkType,
-			RootWorkspace:   workspaceId,
-			TargetWorkspace: workspaceId,
+			RootWorkspace:   getWorkspaceId(),
+			TargetWorkspace: getWorkspaceId(),
 			Type:            2,
 			Source:          compId,
 			Target:          r.ID,
@@ -251,8 +255,8 @@ func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ReferenceRequest{
 			DisplayText:     linkType,
-			RootWorkspace:   workspaceId,
-			TargetWorkspace: workspaceId,
+			RootWorkspace:   getWorkspaceId(),
+			TargetWorkspace: getWorkspaceId(),
 			Type:            2,
 			Source:          compId,
 			Target:          n.ID,

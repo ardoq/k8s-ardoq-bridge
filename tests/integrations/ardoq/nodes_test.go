@@ -3,12 +3,13 @@ package ardoq_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
+	"strings"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
-	"time"
 )
 
 var _ = Describe("Nodes", Ordered, func() {
@@ -130,11 +131,11 @@ var _ = Describe("Nodes", Ordered, func() {
 			Expect(controllers.GenericUpsert("Node", *node)).ShouldNot(BeNil())
 		})
 		It("Can Delete Node", func() {
-			Expect(controllers.GenericDelete("Node", *node)).Should(BeNil())
+			Expect(controllers.GenericDelete("Node", *node)).Should(Succeed())
 		})
 		It("Can't Delete Non Existent Node", func() {
 			node.Name = helper.RandomString(10)
-			Expect(controllers.GenericDelete("Node", *node)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("Node", *node)).ShouldNot(Succeed())
 		})
 	})
 })

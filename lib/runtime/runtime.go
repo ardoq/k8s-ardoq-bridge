@@ -6,14 +6,15 @@ import (
 	"K8SArdoqBridge/app/lib/watcher"
 	"context"
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
-	k "k8s.io/client-go/kubernetes"
 	"os"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
+	k "k8s.io/client-go/kubernetes"
 )
 
 var (
@@ -37,10 +38,10 @@ func EventBuffer(context context.Context, client k.Interface,
 		defer w.Stop()
 		if err != nil {
 			switch {
-			case err == io.EOF:
+			case errors.Is(err, io.EOF):
 				// watch closed normally
 				log.Infof("closed with EOF")
-			case err == io.ErrUnexpectedEOF:
+			case errors.Is(err, io.ErrUnexpectedEOF):
 				log.Infof("closed with unexpected EOF")
 			}
 			log.Error(err)

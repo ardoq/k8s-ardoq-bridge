@@ -3,12 +3,13 @@ package ardoq_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
+	"strings"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
-	"time"
 )
 
 var _ = Describe("Deployments", Ordered, func() {
@@ -113,11 +114,11 @@ var _ = Describe("Deployments", Ordered, func() {
 			Expect(found).Should(BeTrue())
 		})
 		It("Can Delete Deployment", func() {
-			Expect(controllers.GenericDelete("Deployment", *deploy)).Should(BeNil())
+			Expect(controllers.GenericDelete("Deployment", *deploy)).Should(Succeed())
 		})
 		It("Can't Delete Non Existent Deployment", func() {
 			deploy.Name = helper.RandomString(10)
-			Expect(controllers.GenericDelete("Deployment", *deploy)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("Deployment", *deploy)).ShouldNot(Succeed())
 		})
 	})
 })
@@ -223,11 +224,11 @@ var _ = Describe("StatefulSets", Ordered, func() {
 			Expect(controllers.GenericUpsert("StatefulSet", *sts)).ShouldNot(BeNil())
 		})
 		It("Can Delete StatefulSet", func() {
-			Expect(controllers.GenericDelete("StatefulSet", *sts)).Should(BeNil())
+			Expect(controllers.GenericDelete("StatefulSet", *sts)).Should(Succeed())
 		})
 		It("Can't Delete Non Existent StatefulSet", func() {
 			sts.Name = helper.RandomString(10)
-			Expect(controllers.GenericDelete("StatefulSet", *sts)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("StatefulSet", *sts)).ShouldNot(Succeed())
 		})
 	})
 })

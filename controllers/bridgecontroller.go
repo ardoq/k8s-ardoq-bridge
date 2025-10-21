@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"context"
+	"reflect"
+	"strings"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"reflect"
-	"strings"
-	"time"
 )
 
 type resourceQueue struct {
