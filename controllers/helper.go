@@ -15,7 +15,7 @@ import (
 
 var (
 	Cache     = goCache.New(5*time.Minute, 10*time.Minute)
-	ClientSet *kubernetes.Clientset
+	ClientSet kubernetes.Interface
 )
 
 func LookupCluster(name string, deletion ...bool) string {

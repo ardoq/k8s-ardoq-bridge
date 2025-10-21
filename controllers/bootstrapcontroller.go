@@ -13,16 +13,13 @@ import (
 )
 
 func BootstrapModel() error {
-	yamlFile, err := ioutil.ReadFile("bootstrap_models.yaml")
+	yamlFile, err := os.ReadFile("bootstrap_models.yaml")
 	if err != nil {
 		log.Errorf("yamlFile.Get err #%v ", err)
 		return err
 	}
 	model := ModelRequest{}
-	if err != nil {
-		log.Error(err)
-		return err
-	}
+
 	err = yaml.Unmarshal(yamlFile, &model)
 
 	if err != nil {
