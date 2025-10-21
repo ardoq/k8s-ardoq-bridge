@@ -1,5 +1,7 @@
 package controllers
 
+import "encoding/json"
+
 type AppResources struct {
 	CPU    float64
 	Memory string
@@ -63,6 +65,7 @@ type ModelComponentTypes map[string]struct {
 	Children     ModelComponentTypes `json:"children"`
 	Name         string              `json:"name"`
 	ID           string              `json:"id"`
+	Index        int                 `json:"index"`
 	Icon         string              `json:"icon"`
 	Color        string              `json:"color"`
 	Image        interface{}         `json:"image"`
@@ -87,9 +90,59 @@ type Component struct {
 	Parent        string                 `json:"parent,omitempty"`
 	RootWorkspace string                 `json:"rootWorkspace"`
 	Type          string                 `json:"type"`
-	TypeID        string                 `json:"typeId"`
-	Fields        map[string]interface{} `mapstructure:",remain"`
+	TypeID        string                 `json:"typeId" mapstructure:"typeId"`
+	Fields        map[string]interface{} `json:"-" mapstructure:",remain"`
 }
+
+// MarshalJSON implements custom JSON marshaling for Component
+// Fields are flattened to the top level to match the Ardoq API format
+func (c Component) MarshalJSON() ([]byte, error) {
+	// Create a map with standard fields
+	result := make(map[string]interface{})
+
+	if len(c.Children) > 0 {
+		result["children"] = c.Children
+	}
+	if c.Description != "" {
+		result["description"] = c.Description
+	}
+	if c.ID != "" {
+		result["_id"] = c.ID
+	}
+	if c.Model != "" {
+		result["model"] = c.Model
+	}
+	if c.Name != "" {
+		result["name"] = c.Name
+	}
+	if c.Parent != "" {
+		result["parent"] = c.Parent
+	}
+	if c.RootWorkspace != "" {
+		result["rootWorkspace"] = c.RootWorkspace
+	}
+	if c.Type != "" {
+		result["type"] = c.Type
+	}
+	if c.TypeID != "" {
+		result["typeId"] = c.TypeID
+	}
+
+	// Flatten custom fields to the top level
+	if c.Fields != nil {
+		for key, value := range c.Fields {
+			// Skip standard fields to avoid duplication
+			if key != "children" && key != "description" && key != "_id" &&
+				key != "model" && key != "name" && key != "parent" &&
+				key != "rootWorkspace" && key != "type" && key != "typeId" {
+				result[key] = value
+			}
+		}
+	}
+
+	return json.Marshal(result)
+}
+
 type ComponentRequest struct {
 	RootWorkspace string                 `json:"rootWorkspace,omitempty"`
 	Name          interface{}            `json:"name,omitempty"`
@@ -127,4 +180,23 @@ type Workspace struct {
 	Fields         map[string]interface{} `json:",remain"`
 	ID             string                 `json:"_id"`
 	Name           string                 `json:"name"`
+}
+
+// GetComponentTypeID recursively traverses the model component types and returns a map of component type names to their IDs
+func (m *Model) GetComponentTypeID() map[string]string {
+	result := make(map[string]string)
+	m.traverseComponentTypes(m.Root, result)
+	return result
+}
+
+// traverseComponentTypes is a helper function that recursively walks through ModelComponentTypes
+func (m *Model) traverseComponentTypes(types ModelComponentTypes, result map[string]string) {
+	for _, componentType := range types {
+		if componentType.Name != "" && componentType.ID != "" {
+			result[componentType.Name] = componentType.ID
+		}
+		if componentType.Children != nil {
+			m.traverseComponentTypes(componentType.Children, result)
+		}
+	}
 }
