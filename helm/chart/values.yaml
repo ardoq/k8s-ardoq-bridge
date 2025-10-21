@@ -58,6 +58,7 @@ affinity: {}
 podAnnotations: {}
 
 environment: production
+logLevel: info
 ardoq:
   baseUri: ""
   org: ""
