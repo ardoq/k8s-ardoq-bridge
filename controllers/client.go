@@ -34,7 +34,7 @@ func RestyClient() *resty.Request {
 		OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
 			// Log all requests at trace level for debugging
 
-			log.Tracef("%s %s -> HTTP %d (%s)",
+			log.Debugf("%s %s -> HTTP %d (%s)",
 				resp.Request.Method,
 				resp.Request.URL,
 				resp.StatusCode(),

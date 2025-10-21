@@ -21,9 +21,8 @@ func BootstrapModel() error {
 	model := ModelRequest{}
 
 	err = yaml.Unmarshal(yamlFile, &model)
-
 	if err != nil {
-		log.Errorf("Unmarshal: %v", err)
+		log.Errorf("Unmarshalling yaml into model: %v", err)
 		return err
 	}
 	requestStarted := time.Now()
@@ -38,6 +37,7 @@ func BootstrapModel() error {
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
+	log.Tracef("Workspace Model to be used: %s", componentModel)
 	requestStarted = time.Now()
 	resp, err = RestyClient().SetResult(&Model{}).Get("model/" + componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
