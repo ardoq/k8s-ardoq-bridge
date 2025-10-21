@@ -52,22 +52,26 @@ func lookUpTypeId(name string) string {
 		return typeId.(string)
 	}
 	requestStarted := time.Now()
-	workspace, err := ardRestClient().Workspaces().Get(context.TODO(), workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + getWorkspaceId())
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting workspace: %s", err)
+		return ""
 	}
+	workspace := resp.Result().(*Workspace)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//set componentModel to the componentModel from the found workspace
 	componentModel := workspace.ComponentModel
 	requestStarted = time.Now()
-	model, err := ardRestClient().Models().Read(context.TODO(), componentModel)
+	resp, err = RestyClient().SetResult(&Model{}).Get("model/" + componentModel)
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
 		log.Errorf("Error getting model: %s", err)
+		return ""
 	}
+	model := resp.Result().(*Model)
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	cmpTypes := model.GetComponentTypeID()
 	if cmpTypes[name] != "" {
