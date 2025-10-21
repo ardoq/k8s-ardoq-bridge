@@ -131,11 +131,11 @@ var _ = Describe("Nodes", Ordered, func() {
 			Expect(controllers.GenericUpsert("Node", *node)).ShouldNot(BeNil())
 		})
 		It("Can Delete Node", func() {
-			Expect(controllers.GenericDelete("Node", *node)).Should(BeNil())
+			Expect(controllers.GenericDelete("Node", *node)).Should(Succeed())
 		})
 		It("Can't Delete Non Existent Node", func() {
 			node.Name = helper.RandomString(10)
-			Expect(controllers.GenericDelete("Node", *node)).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("Node", *node)).ShouldNot(Succeed())
 		})
 	})
 })

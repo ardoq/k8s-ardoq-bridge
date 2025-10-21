@@ -25,7 +25,7 @@ func RestyClient() *resty.Request {
 				return r.StatusCode() == http.StatusTooManyRequests || r.StatusCode() == http.StatusBadGateway || r.StatusCode() == http.StatusGatewayTimeout
 			},
 		).
-		SetBaseURL(baseUri).
+		SetBaseURL(getBaseUri()).
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 			"Accept":       "application/json",

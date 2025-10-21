@@ -25,7 +25,6 @@ on:
 
 env:
   GO_VERSION: "1.20"
-  KIND_VERSION: "v0.11.1"
 
 jobs:
   verify-code:
@@ -74,26 +73,9 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Setup Kubernetes cluster (KIND)
-        uses: helm/kind-action@v1.10.0
-        with:
-          version: ${{ env.KIND_VERSION }}
-          cluster_name: kind-test
-      - name: Test connection to Kubernetes cluster
-        run: |
-          kubectl cluster-info
-          kubectl wait --for=condition=Ready nodes --all --timeout=300s
-          kubectl describe node
       - name: Run tests
         run: |
           make all-tests
-        env:
-          KUBECONFIG: /home/runner/.kube/config
-          ARDOQ_BASEURI: ${{ secrets.ARDOQ_BASEURI }}
-          ARDOQ_ORG: ${{ secrets.ARDOQ_ORG }}
-          ARDOQ_WORKSPACE_ID: ${{ secrets.ARDOQ_WORKSPACE_ID }}
-          ARDOQ_APIKEY: ${{ secrets.ARDOQ_APIKEY }}
-          ARDOQ_CLUSTER: ${{ secrets.ARDOQ_CLUSTER }}
   release-snapshot:
     name: Release unversioned snapshot
     needs:

@@ -30,7 +30,7 @@ func BootstrapModel() error {
 		return err
 	}
 	requestStarted := time.Now()
-	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + getWorkspaceId())
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -78,7 +78,7 @@ func BootstrapFields() error {
 		return err
 	}
 	requestStarted := time.Now()
-	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + workspaceId)
+	resp, err := RestyClient().SetResult(&Workspace{}).Get("workspace/" + getWorkspaceId())
 	metrics.RequestLatency.WithLabelValues("read").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -98,7 +98,7 @@ func BootstrapFields() error {
 }
 func InitializeCache() error {
 	requestStarted := time.Now()
-	resp, err := RestyClient().SetQueryParam("workspace", workspaceId).Get("component/search")
+	resp, err := RestyClient().SetQueryParam("workspace", getWorkspaceId()).Get("component/search")
 	metrics.RequestLatency.WithLabelValues("search").Observe(time.Since(requestStarted).Seconds())
 	if err != nil {
 		metrics.RequestStatusCode.WithLabelValues("error").Inc()
@@ -198,10 +198,10 @@ func InitializeCache() error {
 	metrics.RequestStatusCode.WithLabelValues("success").Inc()
 	//get shared references
 	for _, v := range references {
-		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
+		if Contains(ApplicationLinks, v.DisplayText) && v.RootWorkspace == getWorkspaceId() {
 			PersistToCache("SharedResourceLinks/"+v.Description, v.ID)
 		}
-		if Contains(NodeLinks, v.DisplayText) && v.RootWorkspace == workspaceId {
+		if Contains(NodeLinks, v.DisplayText) && v.RootWorkspace == getWorkspaceId() {
 			PersistToCache("SharedNodeLinks/"+v.Description, v.ID)
 		}
 	}

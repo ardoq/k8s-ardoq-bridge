@@ -15,10 +15,10 @@ var _ = Describe("Namespaces", Ordered, func() {
 			Expect(controllers.GenericUpsert("Namespace", resourceName)).ShouldNot(BeNil())
 		})
 		It("Can Delete Namespace", func() {
-			Expect(controllers.GenericDelete("Namespace", resourceName)).Should(BeNil())
+			Expect(controllers.GenericDelete("Namespace", resourceName)).Should(Succeed())
 		})
 		It("Can't Delete Non Existent Namespace", func() {
-			Expect(controllers.GenericDelete("Namespace", helper.RandomString(10))).ShouldNot(BeNil())
+			Expect(controllers.GenericDelete("Namespace", helper.RandomString(10))).ShouldNot(Succeed())
 		})
 	})
 })

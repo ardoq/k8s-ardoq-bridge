@@ -3,13 +3,9 @@ package k8s_test
 import (
 	"K8SArdoqBridge/app/controllers"
 	"K8SArdoqBridge/app/tests/helper"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/client-go/util/homedir"
+	"k8s.io/client-go/kubernetes"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -22,32 +18,45 @@ func TestK8s(t *testing.T) {
 }
 
 var (
-	session *gexec.Session
+	fakeK8sClient kubernetes.Interface
+	mockServer    *helper.MockArdoqServer
+	clusterName   string
 )
 
 var _ = BeforeSuite(func() {
-	log.Info("Initializing")
-	err := os.Setenv("ARDOQ_CLUSTER", helper.RandomString(5)+"-k8s-"+os.Getenv("ARDOQ_CLUSTER"))
-	if err != nil {
-		log.Error(err)
-	}
-	log.Infof("Creating cluster: %s", os.Getenv("ARDOQ_CLUSTER"))
+	log.Info("Initializing Mock Ardoq Server")
+	mockServer = helper.NewMockArdoqServer()
+	err := mockServer.ConfigureMockEnvironment()
+	Expect(err).NotTo(HaveOccurred())
+	log.Infof("Mock server URL: %s", mockServer.URL)
 
-	publisherPath, err := gexec.Build("../../../main.go")
+	log.Info("Initializing Fake K8s Client")
+	fakeK8sClient = helper.NewFakeK8sClient()
+	controllers.ClientSet = fakeK8sClient
+
+	clusterName = helper.RandomString(5) + "-k8s-test"
+	err = os.Setenv("ARDOQ_CLUSTER", clusterName)
 	Expect(err).NotTo(HaveOccurred())
-	var cmd *exec.Cmd
-	if os.Getenv("KUBECONFIG") != "" {
-		cmd = exec.Command(publisherPath, "--kubeconfig", os.Getenv("KUBECONFIG"))
-	} else if home := homedir.HomeDir(); home != "" {
-		cmd = exec.Command(publisherPath, "--kubeconfig", filepath.Join(home, ".kube", "config"))
-	}
-	session, err = gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	log.Infof("Cluster name: %s", clusterName)
+
+	// Initialize Ardoq model and fields
+	err = controllers.BootstrapModel()
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session.Err, 5).Should(gbytes.Say(".*Got watcher client.*"))
-	Eventually(session.Err, 30).Should(gbytes.Say(`.*Initialised cluster in Ardoq`))
-	Eventually(session.Err, 10).Should(gbytes.Say(`.*Starting event buffer`))
-	Eventually(session.Err, 30).Should(gbytes.Say(`.*successfully acquired lease.*`))
-	controllers.ApplyDelay(5)
+	log.Info("Initialized the Model")
+
+	err = controllers.BootstrapFields()
+	Expect(err).NotTo(HaveOccurred())
+	log.Info("Initialised Custom Fields")
+
+	// Initialize cache
+	err = controllers.InitializeCache()
+	Expect(err).NotTo(HaveOccurred())
+	log.Info("Cache initialized")
+
+	// Initialize cluster in Ardoq
+	controllers.LookupCluster(clusterName)
+	log.Info("Initialised cluster in Ardoq")
+
 	log.Info("Initializing Complete")
 })
 
@@ -59,10 +68,13 @@ var _ = AfterSuite(func() {
 
 	//cleanup cluster in ardoq
 	cleanupCluster()
-	//kill the running session
-	session.Kill()
-	//cleanup running binary
-	gexec.CleanupBuildArtifacts()
+
+	// Close mock server
+	if mockServer != nil {
+		mockServer.Close()
+	}
+
+	controllers.Cache.Flush()
 	log.Info("Cleanup Complete...Terminating!!")
 })
 

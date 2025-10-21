@@ -175,7 +175,7 @@ func GenericUpsertSharedComponents(resourceType string, category string, name st
 	}
 	component := ComponentRequest{
 		Name:          strings.ToLower(name),
-		RootWorkspace: workspaceId,
+		RootWorkspace: getWorkspaceId(),
 		TypeID:        lookUpTypeId("Shared" + resourceType + "Component"),
 		Fields: map[string]interface{}{
 			"shared_category": category,
@@ -225,8 +225,8 @@ func (r *Resource) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedResourceLinks/" + r.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ReferenceRequest{
 			DisplayText:     linkType,
-			RootWorkspace:   workspaceId,
-			TargetWorkspace: workspaceId,
+			RootWorkspace:   getWorkspaceId(),
+			TargetWorkspace: getWorkspaceId(),
 			Type:            2,
 			Source:          compId,
 			Target:          r.ID,
@@ -255,8 +255,8 @@ func (n *Node) Link(linkType string, compId string, reverse ...bool) {
 	if _, found := GetFromCache("SharedNodeLinks/" + n.ID + "/" + compId); !found && compId != "" {
 		referenceLink := ReferenceRequest{
 			DisplayText:     linkType,
-			RootWorkspace:   workspaceId,
-			TargetWorkspace: workspaceId,
+			RootWorkspace:   getWorkspaceId(),
+			TargetWorkspace: getWorkspaceId(),
 			Type:            2,
 			Source:          compId,
 			Target:          n.ID,

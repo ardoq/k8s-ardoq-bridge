@@ -18,7 +18,7 @@ var _ = Describe("Clusters", Ordered, func() {
 			Expect(controllers.LookupCluster(resourceName)).ShouldNot(BeNil())
 		})
 		It("Can Delete Cluster", func() {
-			Expect(controllers.GenericDelete("Cluster", resourceName)).Should(BeNil())
+			Expect(controllers.GenericDelete("Cluster", resourceName)).Should(Succeed())
 		})
 
 	})

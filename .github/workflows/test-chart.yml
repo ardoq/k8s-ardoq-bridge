@@ -18,7 +18,6 @@ on:
   workflow_dispatch:
 
 env:
-  KIND_VERSION: "v0.11.1"
   CHART_DIR: helm/chart
 
 jobs:
@@ -41,15 +40,5 @@ jobs:
       - name: Setup Chart Linting
         id: lint
         uses: helm/chart-testing-action@v2.6.1
-#      - name: Setup Kubernetes cluster (KIND)
-#        uses: helm/kind-action@v1.2.0
-#        with:
-#          version: ${{ env.KIND_VERSION }}
-#          cluster_name: kind-test
-#      - name: Test connection to Kubernetes cluster
-#        run: |
-#          kubectl cluster-info
-#          kubectl wait --for=condition=Ready nodes --all --timeout=300s
-#          kubectl describe node
       - name: Run chart-testing
         run: ct lint --validate-maintainers=false --charts ${{ env.CHART_DIR }}
