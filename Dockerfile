@@ -1,10 +1,10 @@
-FROM golang:1.21-alpine as builder
+FROM golang:1.25-alpine AS builder
 RUN mkdir /src
 WORKDIR /src
-ADD . .
+COPY . .
 RUN go build -ldflags "-s -w -X main.version=$(cat VERSION)" -o main .
 
-FROM alpine
+FROM alpine:3.22
 COPY --from=builder /src/main /app/
 COPY bootstrap_*.yaml /app/
 WORKDIR /app

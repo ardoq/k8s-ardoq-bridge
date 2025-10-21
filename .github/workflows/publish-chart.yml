@@ -20,10 +20,10 @@ env:
 jobs:
   test-helm-chart:
     name: Test Helm Chart
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install Helm
@@ -31,7 +31,7 @@ jobs:
         with:
           version: v3.5.0
       - name: Set up python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.7
       - name: Setup Chart Linting
@@ -43,9 +43,9 @@ jobs:
     name: Release Helm Chart
     needs:
       - test-helm-chart
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: package
         name: Package charts
         run: |
