@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"K8SArdoqBridge/app/lib/metrics"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -59,7 +58,7 @@ func BootstrapModel() error {
 	return nil
 }
 func BootstrapFields() error {
-	yamlFile, err := ioutil.ReadFile("bootstrap_fields.yaml")
+	yamlFile, err := os.ReadFile("bootstrap_fields.yaml")
 	if err != nil {
 		log.Errorf("yamlFile.Get err #%v ", err)
 		return err
